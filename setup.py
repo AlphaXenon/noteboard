@@ -5,7 +5,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 # Package Meta-Data
 NAME = "noteboard"
-DESCRIPTION = "Mangae and store your notes & tasks in a tidy and fancy way."
+DESCRIPTION = "Manage your notes & tasks in a tidy and fancy way."
 URL = "https://github.com/AlphaXenon/noteboard"
 EMAIL = "tony.chan2342@gmail.com"
 AUTHOR = "AlphaXenon"

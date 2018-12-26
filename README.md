@@ -12,6 +12,7 @@
 * Save & Load states
 * Undo previous actions / changes
 * Customizable colors scheme
+* Store data using the `shelve` library
 
 ## Installation
 
@@ -138,12 +139,11 @@ The JSON file must be in a valid structure simillar to the following.
             "id": 1,
             "data": "item text",
             "time": "<timestamp>",
-            "tick": true/false,
-            "mark": true/false,
-            "star": true/false,
+            "tick": false,
+            "mark": false,
+            "star": false,
             "tag": "<manipulated tag text with ANSI code>"
         },
-        ...
     ]
 }
 ```

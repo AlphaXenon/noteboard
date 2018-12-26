@@ -1,7 +1,7 @@
 import argparse
 import sys
 import os
-from datetime import datetime
+import datetime
 from colorama import init, deinit, Fore, Back, Style
 
 from . import DEFAULTS, COLORS, DIR_PATH
@@ -194,36 +194,47 @@ def display_board(st=False):
         shelf = dict(s.shelf)
     if not shelf:
         print()
-        p(Back.BLUE + " Type `board --help` to get started ")
+        p(Style.BRIGHT + "Type", Style.BRIGHT + Fore.YELLOW + "`board --help`", Style.BRIGHT + "to get started")
     for board in shelf:
         # Print Board title
         if len(shelf[board]) == 0:
             continue
         print()
-        p(Style.BRIGHT + board, " " + Fore.LIGHTBLACK_EX + "[{}]".format(len(shelf[board])))
+        p("\033[4m" + Style.BRIGHT + board, Fore.LIGHTBLACK_EX + "[{}]".format(len(shelf[board])))
         # Print Item
         for item in shelf[board]:
-            # Mark and Text color
-            mark = Fore.LIGHTBLUE_EX + "•"
+            # Mark, Text color, Tag
+            mark = Fore.BLUE + "●"
             text_color = ""
+            tag_text = ""
             # tick
             if item["tick"] is True:
                 mark = Fore.GREEN + "✔"
-                text_color = Style.DIM
+                text_color = Fore.LIGHTBLACK_EX
             # mark
             if item["mark"] is True:
                 if item["tick"] is False:
                     mark = Fore.LIGHTRED_EX + "!"
                 text_color = Style.BRIGHT + Fore.RED
+            # tag
+            if item["tag"]:
+                tag_text = " " + item["tag"] + " "
             # Star
             star = "  "
             if item["star"] is True:
                 star = Fore.LIGHTYELLOW_EX + "⭑ "
-            if st is True:
-                dt = datetime.utcfromtimestamp(item["time"]).strftime("%Y/%m/%d %H:%M:%S")
-                p(star + Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["data"], " " + item["tag"] + " ", Fore.LIGHTBLACK_EX + "({})".format(dt))
+            date_format = "%Y/%m/%d %H:%M:%S"
+            dt = datetime.datetime.utcfromtimestamp(item["time"]).strftime(date_format) # string
+            date = datetime.datetime.strptime(dt, date_format)  # date object
+            d = int(datetime.date.today().day) - int(date.day)  # difference
+            if d <= 0:
+                day_text = ""
             else:
-                p(star + Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["data"], " " + item["tag"] + " ")
+                day_text = Fore.LIGHTBLACK_EX + "{}d".format(d)
+            if st is True:
+                p(star + Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["data"], tag_text, Fore.LIGHTBLACK_EX + "({})".format(dt))
+            else:
+                p(star + Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["data"], tag_text, day_text)
     print()
     print_footer()
     print_total()
