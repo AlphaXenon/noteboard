@@ -168,9 +168,9 @@ If `config` flag **is** specified, only `~/.noteboard/config.ini` will be set to
 
 ## Cautions
 
-Some terminal emulators may not support dimmed (`Style.DIM`) text and light colors.
+Some terminal emulators may not support dimmed (`Style.DIM`) & underlined (`\033[4m`) text.
 
-The program also uses ascii symbols such as `⭑` and `✔` which also may not be displayed properly in some terminal emulators.
+The program also uses symbols such as `⭑` and `✔` which also may not be displayed properly in some terminal emulators.
 
 ### Tested On:
 
