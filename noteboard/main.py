@@ -227,6 +227,7 @@ def display_board(st=False):
             dt = datetime.datetime.utcfromtimestamp(item["time"]).strftime(date_format) # string
             date = datetime.datetime.strptime(dt, date_format)  # date object
             d = int(datetime.date.today().day) - int(date.day)  # difference
+            # FIXME: Timestamp different locale and timezone
             if d <= 0:
                 day_text = ""
             else:
@@ -306,10 +307,30 @@ def reset(args):
 
 
 def main():
-    description = (Style.BRIGHT + "    Noteboard" + Style.RESET_ALL + " lets you store your " + Fore.YELLOW + "notes" + Fore.RESET + " and " + Fore.CYAN + "commands" + Fore.RESET + " in a " + Fore.LIGHTMAGENTA_EX + "fancy" + Fore.RESET + " way.")
-    parser = argparse.ArgumentParser(prog="board", description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
+    usage = "board [-h] [--version] [-st] {add,remove,clear,tick,mark,star,edit,tag,run,undo,import,export,reset}"
+    description = (Style.BRIGHT + "    \033[4mNoteboard" + Style.RESET_ALL + " lets you store your " + Fore.YELLOW + "notes" + Fore.RESET + " and " + Fore.CYAN + "commands" + Fore.RESET + " in a " + Fore.LIGHTMAGENTA_EX + "fancy" + Fore.RESET + " way.")
+    epilog = \
+"""
+Examples:
+  $ board add "improve cli" -b "Noteboard Todo List"
+  $ board remove 1
+  $ board clear -b "Noteboard Todo List"
+  $ board edit 1 "improve cli help message"
+  $ board tag 1 "enhancement" -c GREEN
+  $ board import ~/Documents/board.json
+  $ board export ~/Documents/
+
+Made with \u2764 by AlphaXenon
+"""
+    parser = argparse.ArgumentParser(
+        prog="board",
+        usage=usage,
+        description=description,
+        epilog=epilog,
+        formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument("--version", action="version", version="noteboard " + __version__)
-    parser.add_argument("-st", "--show-time", help="show boards with the time added of every items", default=False, action="store_true", dest="st")
+    parser.add_argument("-st", "--show-time", help="show boards with the added time of every items", default=False, action="store_true", dest="st")
     subparsers = parser.add_subparsers()
 
     add_parser = subparsers.add_parser("add", help=get_color("add") + "[+] Add an item to a board" + Fore.RESET)
