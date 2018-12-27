@@ -52,14 +52,21 @@ Positional Arguments:
 
 Optional Arguments:
     -h, --help          show this help message and exit
-    -st, --show-time    show boards with the time added of every items
+    -st, --show-time    show boards with the added time of every items
+    -i, --interactive   enter interactive mode
 ```
 
 ### View Boards
 
 `board`
 
-* `-st/--show-time` : show boards with the time added of every items
+* `-st/--show-time` : show boards with the added time of each items
+
+#### Interactive Mode
+
+`board -i/--interactive` : enter interactive mode
+
+This mode allows you to operate with boards more dynamically as you can modify many items at a time.
 
 ### Add Item
 
