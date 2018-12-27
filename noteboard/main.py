@@ -77,6 +77,9 @@ def add(args):
     color = get_color("add")
     item = args.item
     board = args.board
+    if item.strip() == "":
+        print(Back.RED + "[!]", Fore.RED + "Text must not be empty")
+        return
     with Storage() as s:
         i = s.add_item(board, item)
     print()
@@ -156,6 +159,9 @@ def edit(args):
     color = get_color("edit")
     item = args.item
     text = args.text
+    if text.strip() == "":
+        print(Back.RED + "[!]", Fore.RED + "Text must not be empty")
+        return
     with Storage() as s:
         i = s.modify_item(item, "data", text)
     print()
@@ -255,7 +261,7 @@ def undo(args):
         p(color + Style.BRIGHT + "Last Action:")
         p(get_color(state["action"]) + "=>", state["info"])
         print()
-        ask = input("[?] Undo (y/n) ? ")
+        ask = input("[?] Continue (y/n) ? ")
         if ask != "y":
             print(Back.RED + "[!]", Fore.RED + "Operation Aborted")
             return
@@ -306,7 +312,188 @@ def reset(args):
         print(Fore.GREEN + "Done:", color + "Program has reset")
 
 
+def interactive_prompt():
+
+    def invalid(text=None):
+        nonlocal arrow_color
+        arrow_color = Fore.RED
+        if text == "":
+            return
+        if text is None:
+            print(Fore.RED + "Invalid input")
+        else:
+            print(Fore.RED + str(text))
+    
+    def check_digit(item_ids):
+        nondigit = False
+        for item in items:
+            if not item.isdigit():
+                nondigit = True
+                break
+        return nondigit
+
+    arrow_color = Fore.GREEN
+    display_board()
+    print(Fore.LIGHTBLACK_EX + "[Type ? for help, q or ctrl-c to quit]")
+    print(Fore.LIGHTBLACK_EX + "[Commands: add/remove/clear/(un)tick/(un)mark/(un)star/edit/(un)tag/undo/import]")
+    print(Fore.LIGHTBLACK_EX + "[Tips: You can use , (without space) to seperate multiple boards and items]")
+    while True:
+        try:
+            command = input(Fore.YELLOW + Style.BRIGHT + "[Noteboard]" + Style.RESET_ALL + arrow_color + "=> " + Fore.RESET)
+            command = command.strip()
+            if command == "":
+                # display board
+                pass
+            elif command in ("?", "help"):
+                # print help
+                parser.print_help()
+                continue
+            elif command == "commands":
+                # show all available commands
+                print(Fore.LIGHTBLACK_EX + "[Commands: add/remove/clear/(un)tick/(un)mark/(un)star/edit/(un)tag/undo/import]")
+                continue
+            elif command == "q":
+                # quit
+                confirm = input(Style.BRIGHT + "Are you sure (y/n) ? " + Style.RESET_ALL)
+                if confirm in ("y", "yes"):
+                    return
+                continue
+            elif command == "add":
+                # Prompt
+                text = input("[+] Item text >> ").strip()
+                if not text:
+                    invalid()
+                    continue
+                boards = input("[+] Add to (default: Board) >> ").split(",")
+                boards = [board.strip() for board in boards]
+                # Add
+                with Storage() as s:
+                    for board in boards:
+                        s.add_item(board, text)
+            elif command == "remove":
+                # Prompt
+                items = input("[-] Item id >> ").split(",")
+                if check_digit(items):
+                    invalid()
+                    continue
+                # Remove
+                with Storage() as s:
+                    for item in items:
+                        s.remove_item(int(item))
+            elif command == "clear":
+                # Prompt
+                boards = input("[X] Clear (default: all) >> ").split(",")
+                boards = [board.strip() for board in boards]
+                # Clear
+                with Storage() as s:
+                    if boards:
+                        for board in boards:
+                            s.clear_board(board)
+                    else:
+                        s.clear_board()
+            elif command in ("tick", "mark", "star", "untick", "unmark", "unstar"):
+                # Prompt
+                items = input("@ Item id >> ").split(",")
+                if check_digit(items):
+                    invalid()
+                    continue
+                if command.startswith("un"):
+                    # Modify
+                    with Storage() as s:
+                        for item in items:
+                            s.modify_item(int(item), command[2:], False)
+                else:
+                    # Modify
+                    with Storage() as s:
+                        for item in items:
+                            s.modify_item(int(item), command, True)
+            elif command == "edit":
+                # Prompt
+                item = input("[~] Item id >> ")
+                if not item.isdigit():
+                    invalid()
+                    continue
+                text = input("[~] New text >> ").strip()
+                if not text:
+                    invalid()
+                    continue
+                # Edit
+                with Storage() as s:
+                    s.modify_item(int(item), "data", text)
+            elif command == "tag":
+                # Prompt
+                items = input("[#] Item id >> ").split(",")
+                if check_digit(items):
+                    invalid()
+                    continue
+                text = input("[#] Tag text >> ").strip()
+                if not text:
+                    invalid()
+                    continue
+                if len(text) > 10:
+                    invalid("Tag text length should not be longer than 10 characters")
+                    continue
+                color = input("[#] Tag color (default: BLUE) >> ").strip()
+                if color == "":
+                    color = "BLUE"
+                # Tag
+                try:
+                    tag_color = eval("Back." + color.upper())
+                except Exception:
+                    invalid("colorama.Back has no attribute '{}'".format(color.upper()))
+                    continue
+                tag_text = tag_color + Style.DIM + "#" + Style.RESET_ALL + tag_color + text + " " + Back.RESET
+                with Storage() as s:
+                    for item in items:
+                        s.modify_item(int(item), "tag", tag_text)
+            elif command == "untag":
+                # Prompt
+                items = input("[#] Item id >> ").split(",")
+                if check_digit(items):
+                    invalid()
+                    continue
+                # Untag
+                with Storage() as s:
+                    for item in items:
+                        s.modify_item(int(item), "tag", "")
+            elif command == "undo":
+                with Storage() as s:
+                    state = s._States.load(rm=False)
+                    if state is False:
+                        invalid("No available state to be undone")
+                        continue
+                    print(Style.BRIGHT + "Last Action:", state["info"])
+                    confirm = input("[?] Continue (y/n) ? ")
+                    if confirm in ("y", "yes"):
+                        # Undo
+                        s.load_state()
+                    else:
+                        continue
+            elif command == "import":
+                # Prompt
+                path = input("[I] File path >> ").strip()
+                if path == "":
+                    invalid()
+                    continue
+                # Import
+                with Storage() as s:
+                    s.import_(path)
+            else:
+                # invalid command
+                invalid("Invalid command")
+                continue
+        except NoteboardException as e:
+            print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
+            invalid("")
+            continue
+        except KeyboardInterrupt:
+            return
+        display_board()
+        arrow_color = Fore.GREEN
+
+
 def main():
+    global parser
     usage = "board [-h] [--version] [-st] {add,remove,clear,tick,mark,star,edit,tag,run,undo,import,export,reset}"
     description = (Style.BRIGHT + "    \033[4mNoteboard" + Style.RESET_ALL + " lets you store your " + Fore.YELLOW + "notes" + Fore.RESET + " and " + Fore.CYAN + "commands" + Fore.RESET + " in a " + Fore.LIGHTMAGENTA_EX + "fancy" + Fore.RESET + " way.")
     epilog = \
@@ -331,6 +518,7 @@ Made with \u2764 by AlphaXenon
     )
     parser.add_argument("--version", action="version", version="noteboard " + __version__)
     parser.add_argument("-st", "--show-time", help="show boards with the added time of every items", default=False, action="store_true", dest="st")
+    parser.add_argument("-i", "--interactive", help="enter interactive mode", default=False, action="store_true")
     subparsers = parser.add_subparsers()
 
     add_parser = subparsers.add_parser("add", help=get_color("add") + "[+] Add an item to a board" + Fore.RESET)
@@ -381,7 +569,7 @@ Made with \u2764 by AlphaXenon
     import_parser.set_defaults(func=import_)
 
     export_parser = subparsers.add_parser("export", help=get_color("export") + "[E] Export boards as a JSON file" + Fore.RESET)
-    export_parser.add_argument("-d", "--dest", help="destination of the exported file (default: .)", type=str, default=".", metavar="<destination path>")
+    export_parser.add_argument("-d", "--dest", help="destination of the exported file (default: ./board.json)", type=str, default="./board.json", metavar="<destination path>")
     export_parser.set_defaults(func=export)
 
     reset_parser = subparsers.add_parser("reset", help=get_color("reset") + "[R] Reset settings to default" + Fore.RESET)
@@ -390,15 +578,18 @@ Made with \u2764 by AlphaXenon
 
     args = parser.parse_args()
     init(autoreset=True)
-    try:
+    if args.interactive:
+        interactive_prompt()
+    else:
         try:
-            args.func(args)
+            try:
+                args.func(args)
+            except AttributeError:
+                raise
+            except NoteboardException as e:
+                print(Back.RED + "[!]", Style.BRIGHT + Fore.RED + "ERROR:", str(e))
+            except Exception as e:
+                print(Back.RED + "[!]", Style.BRIGHT + Fore.RED + "Uncaught Exception:", str(e))
         except AttributeError:
-            raise
-        except NoteboardException as e:
-            print(Back.RED + "[!]", Style.BRIGHT + Fore.RED + "ERROR:", str(e))
-        except Exception as e:
-            print(Back.RED + "[!]", Style.BRIGHT + Fore.RED + "Uncaught Exception:", str(e))
-    except AttributeError:
-        display_board(st=args.st)
+            display_board(st=args.st)
     deinit()

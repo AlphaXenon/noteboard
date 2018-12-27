@@ -334,10 +334,10 @@ class Storage:
             self.shelf.update(dict(data))
             return path
     
-    def export(self, dest=""):
+    def export(self, dest="./board.json"):
         """[Action]
         * Can be Undone: No
-        Exoport the current shelf as a JSON file to :dest: (filename: board.json).
+        Exoport the current shelf as a JSON file to :dest:.
 
         Arguments:
             dest {str} -- path of the destination
@@ -346,11 +346,10 @@ class Storage:
             path {str} -- full path of the exported file
         """
         dest = os.path.abspath(dest)
-        path = os.path.join(dest, "board.json")
         data = dict(self.shelf)
-        with open(path, "w") as f:
+        with open(dest, "w") as f:
             json.dump(data, f)
-        return path
+        return dest
     
     def _save_state(self, info, action):
         data = dict(self.shelf)
