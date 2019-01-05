@@ -2,11 +2,10 @@ import shelve
 import pickle
 import json
 import os
-import time
 
-from . import DEFAULTS, DIR_PATH, STATES_PATH, STORAGE_PATH
+from . import DIR_PATH, STATES_PATH, STORAGE_PATH
 from .logger import setup_logger
-from .utils import raise_error
+from .utils import raise_error, get_time
 
 
 class NoteboardException(Exception):
@@ -20,7 +19,7 @@ class ItemNotFoundError(NoteboardException):
         self.id = id
 
     def __str__(self):
-        return "No Item with id '{}' was found.".format(self.id)
+        return "No item with id '{}' was found.".format(self.id)
 
 
 class BoardNotFoundError(NoteboardException):
@@ -30,7 +29,7 @@ class BoardNotFoundError(NoteboardException):
         self.name = name
 
     def __str__(self):
-        return "No Board with name '{}' was found.".format(self.name)
+        return "No board with name '{}' was found.".format(self.name)
 
 
 class States:
@@ -101,13 +100,13 @@ class Storage:
         self.logger = setup_logger()
 
     def __enter__(self):
-        self.logger.info("--> OPERATION STARTED <--")
+        self.logger.info("--> OPEN <--")
         self.open()
         return self
 
     def __exit__(self, *args, **kwargs):
         self.close()
-        self.logger.info("--> OPERATION ENDED <--")
+        self.logger.info("--> CLOSE <--")
         return False
 
     def open(self):
@@ -165,11 +164,13 @@ class Storage:
         self.logger.debug("Added Board: '{}'".format(board))
         self.shelf[board] = []  # register board by adding an empty list
 
-    def _add_item(self, id, board, data):
+    def _add_item(self, id, board, text):
+        date, timestamp = get_time()
         payload = {
             "id": id,
-            "data": data,
-            "time": int(time.time()),
+            "text": text,
+            "time": timestamp,
+            "date": date,
             "tick": False,
             "mark": False,
             "star": False,
@@ -179,7 +180,7 @@ class Storage:
         self.logger.debug("Added Item: {} to Board: '{}'".format(json.dumps(payload), board))
         return payload
 
-    def add_item(self, board, data):
+    def add_item(self, board, text):
         """[Action]
         * Can be Undone: Yes
         Prepare data to be dumped into the shelf.
@@ -197,7 +198,7 @@ class Storage:
         if ids:
             current_id = ids[-1]["id"] + 1
         # Set Board Name
-        board = board or DEFAULTS["board"]
+        board = board or "Board"
         # Save
         self._save_state("Add item {} to {}".format(current_id, board), "add")
         # Add
@@ -205,7 +206,7 @@ class Storage:
             # create board
             self._add_board(board)
         # add item
-        return self._add_item(current_id, board, data)
+        return self._add_item(current_id, board, text)
 
     def remove_item(self, id):
         """[Action]
@@ -269,7 +270,7 @@ class Storage:
 
         Arguments:
             id {int} -- id of the item you wanted to be modify
-            key {str} -- one of [id, data, time, tick]
+            key {str} -- one of [id, text, time, tick, star, mark, tag]
             value -- new value to replace the old value
         
         Returns:
@@ -279,16 +280,21 @@ class Storage:
             for item in self.shelf[board]:
                 if item["id"] == id:
                     old = item.copy()
-                    if key == "data":
+                    if key == "text":
                         # Save if modifying text
                         self._save_state("Edit text of item {}".format(id), "edit")
+                        # update modify time
+                        # ? remove this feature
+                        date, time = get_time()
+                        item["time"] = time
+                        item["date"] = date
                     item[key] = value
                     self.logger.debug("Modified Item from {} to {}".format(json.dumps(old), json.dumps(item)))
                     return old
         raise_error(ItemNotFoundError(id))
     
     def _validate_json(self, data):
-        keys = ["id", "data", "time", "tick", "mark", "star", "tag"]
+        keys = ["id", "text", "time", "tick", "mark", "star", "tag"]
         for board in data:
             if str(board) == "":
                 return False

@@ -17,8 +17,21 @@ about = {}
 with open(os.path.join(here, NAME, "__version__.py"), "r") as f:
     exec(f.read(), about)
 
-with open(os.path.join(here, "README.md")) as f:
-    long_description = "\n" + f.read()
+long_description = \
+"""
+Noteboard lets you manage your notes & tasks in a tidy and fancy way.
+
+## Features
+
+* Fancy interface
+* Lightweight & Easy to use
+* Manage notes & tasks in multiple boards
+* Run item as command inside terminal (subprocess)
+* Import boards from external JSON files & Export boards as JSON files
+* Save & Load states
+* Undo previous actions / changes
+* Store data using the `shelve` library
+"""
 
 # Setup
 setup(

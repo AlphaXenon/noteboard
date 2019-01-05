@@ -6,7 +6,7 @@ from . import LOG_PATH
 
 def setup_logger():
     formatter = logging.Formatter("%(asctime)s [%(levelname)s] (%(funcName)s in %(filename)s) %(message)s", "")
-    handler = logging.FileHandler(LOG_PATH, mode="w+")
+    handler = logging.FileHandler(LOG_PATH, mode="a+")
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)
 

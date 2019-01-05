@@ -11,8 +11,7 @@
 * Import boards from external JSON files & Export boards as JSON files
 * Save & Load states
 * Undo previous actions / changes
-* Customizable colors scheme
-* Store data using the `shelve` library
+* Store data using the `shelve` standard library
 
 ## Installation
 
@@ -39,7 +38,7 @@ Positional Arguments:
     add                 [+] Add an item to a board
     remove              [-] Remove an item
     clear               [x] Clear all items on a/all boards
-    tick                [✔] Tick/Untick an item
+    tick                [✓] Tick/Untick an item
     mark                [*] Mark/Unmark an item
     star                [⭑] Star/Unstar an item
     edit                [~] Edit the text of an item
@@ -53,7 +52,6 @@ Positional Arguments:
 Optional Arguments:
     -h, --help          show this help message and exit
     -st, --show-time    show boards with the added time of every items
-    -i, --interactive   enter interactive mode
 ```
 
 ### View Boards
@@ -61,12 +59,6 @@ Optional Arguments:
 `board`
 
 * `-st/--show-time` : show boards with the added time of each items
-
-#### Interactive Mode
-
-`board -i/--interactive` : enter interactive mode
-
-This mode allows you to operate with boards more dynamically as you can modify many items at a time.
 
 ### Add Item
 
@@ -149,7 +141,7 @@ The JSON file must be in a valid structure simillar to the following.
             "tick": false,
             "mark": false,
             "star": false,
-            "tag": "<manipulated tag text with ANSI code>"
+            "tag": "<tag text with ANSI code (auto manipulated by noteboard)>"
         },
     ]
 }
@@ -163,16 +155,6 @@ The JSON file must be in a valid structure simillar to the following.
 
 The exported JSON file is named `board.json`.
 
-### Reset to Default
-
-`board reset`
-
-* `-c/--config` : reset the configurations to default only
-
-If `config` flag **is not** specified, this will delete all files inside `~/.noteboard` directory.
-
-If `config` flag **is** specified, only `~/.noteboard/config.ini` will be set to default. This will not affect the data.
-
 ## Cautions
 
 Some terminal emulators may not support dimmed (`Style.DIM`) & underlined (`\033[4m`) text.
@@ -185,38 +167,10 @@ The program also uses symbols such as `⭑` and `✔` which also may not be disp
 
 **Terminal Emulators:** iTerm2
 
-## Customizing Configurations
-
-Path to the config file: `~/.noteboard/config.ini`
-
-You can change the foreground color of action texts by editing `~/.noteboard/config.ini` file in the `COLORS` section.
-
-For the available foreground colors, please refer to the [colorama](https://github.com/tartley/colorama) module.
-
-```ini
-[COLORS]
-; Default colors of each actions.
-; Values must be valid properties of colorama.Fore
-; Values must be in upper cases.
-run = LIGHTCYAN_EX
-add = GREEN
-remove = MAGENTA
-clear = RED
-tick = LIGHTYELLOW_EX
-mark = CYAN
-star = YELLOW
-edit = BLUE
-tag = LIGHTBLUE_EX
-import =
-export =
-undo = BLUE
-reset = YELLOW
-```
-
 ## Credit
 
-This project is inspired by [taskbook](https://github.com/klaussinani/taskbook), a useful command-line tool for organizing notes & tasks developed by Klaus Sinani.
+This project is inspired by Klaus Sinani's [taskbook](https://github.com/klaussinani/taskbook).
 
 ## License
 
-MIT
+[MIT Licnese](./LICENSE.txt)

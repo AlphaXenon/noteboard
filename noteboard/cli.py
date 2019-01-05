@@ -4,21 +4,33 @@ import os
 import datetime
 from colorama import init, deinit, Fore, Back, Style
 
-from . import DEFAULTS, COLORS, DIR_PATH
+from . import DIR_PATH
 from .__version__ import __version__
 from .storage import Storage, NoteboardException
-from .config import load_config, init_config
+from .utils import get_time
 
-
-def get_color(action):
-    color = COLORS.get(str(action), "")
-    if not color:
-        return color
-    return eval("Fore." + str(color))
+COLORS = {
+    "add": Fore.GREEN,
+    "remove": Fore.LIGHTMAGENTA_EX,
+    "clear": Fore.RED,
+    "run": Fore.BLUE,
+    "tick": Fore.GREEN,
+    "mark": Fore.YELLOW,
+    "star": Fore.YELLOW,
+    "tag": Fore.LIGHTBLUE_EX,
+    "edit": Fore.LIGHTCYAN_EX,
+    "undo": Fore.LIGHTYELLOW_EX,
+    "import": "",
+    "export": "",
+}
 
 
 def p(*args, **kwargs):
     print(" ", *args, **kwargs)
+
+
+def get_color(action):
+    return COLORS.get(action, "")
 
 
 def print_footer():
@@ -53,12 +65,12 @@ def run(args):
     # Run
     import subprocess
     import shlex
-    cmd = shlex.split(i["data"])
+    cmd = shlex.split(i["text"])
     if "|" in cmd:
-        command = i["data"]
+        command = i["text"]
         shell = True
     elif len(cmd) == 1:
-        command = i["data"]
+        command = i["text"]
         shell = True
     else:
         command = cmd
@@ -83,7 +95,7 @@ def add(args):
     with Storage() as s:
         i = s.add_item(board, item)
     print()
-    p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or DEFAULTS["board"]))
+    p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or "Board"))
     print_total()
     print()
 
@@ -121,9 +133,9 @@ def tick(args):
         i = s.modify_item(item, "tick", state)
     print()
     if state is True:
-        p(color + "[✔] Ticked item", Style.BRIGHT + str(i["id"]), color)
+        p(color + "[✓] Ticked item", Style.BRIGHT + str(i["id"]), color)
     else:
-        p(color + "[✔] Unticked item", Style.BRIGHT + str(i["id"]), color)
+        p(color + "[✓] Unticked item", Style.BRIGHT + str(i["id"]), color)
     print()
 
 
@@ -160,12 +172,12 @@ def edit(args):
     item = args.item
     text = args.text
     if text.strip() == "":
-        print(Back.RED + "[!]", Fore.RED + "Text must not be empty")
+        print(Fore.RED + "[!] Text must not be empty")
         return
     with Storage() as s:
-        i = s.modify_item(item, "data", text)
+        i = s.modify_item(item, "text", text)
     print()
-    p(color + "[~] Edited text of item", Style.BRIGHT + str(i["id"]), color + "from", i["data"], color + "to", text)
+    p(color + "[~] Edited text of item", Style.BRIGHT + str(i["id"]), color + "from", i["text"], color + "to", text)
     print()
 
 
@@ -175,7 +187,7 @@ def tag(args):
     text = args.text or ""
     c = args.color
     if len(text) > 10:
-        print(Back.RED + "[!]", Fore.RED + "Tag text length should not be longer than 10 characters")
+        print(Fore.RED + "[!] Tag text length should not be longer than 10 characters")
         return
     if text != "":
         tag_color = eval("Back." + c.upper())
@@ -226,22 +238,23 @@ def display_board(st=False):
             if item["tag"]:
                 tag_text = " " + item["tag"] + " "
             # Star
-            star = "  "
+            star = " "
             if item["star"] is True:
-                star = Fore.LIGHTYELLOW_EX + "⭑ "
-            date_format = "%Y/%m/%d %H:%M:%S"
-            dt = datetime.datetime.utcfromtimestamp(item["time"]).strftime(date_format) # string
-            date = datetime.datetime.strptime(dt, date_format)  # date object
-            d = int(datetime.date.today().day) - int(date.day)  # difference
-            # FIXME: Timestamp different locale and timezone
-            if d <= 0:
+                star = Fore.LIGHTYELLOW_EX + "⭑"
+            # convert to from timestamp to human readable time format
+            time = datetime.datetime.fromtimestamp(item["time"]).strftime("%Y/%m/%d %H:%M:%S")
+            # calculate days difference between two date object
+            date = datetime.datetime.strptime(item["date"], "%a %d %b %Y")
+            today = datetime.datetime.strptime(get_time()[0], "%a %d %b %Y")
+            days = today.day - date.day
+            if days <= 0:
                 day_text = ""
             else:
-                day_text = Fore.LIGHTBLACK_EX + "{}d".format(d)
+                day_text = Fore.LIGHTBLACK_EX + "{}d".format(days)
             if st is True:
-                p(star + Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["data"], tag_text, Fore.LIGHTBLACK_EX + "({})".format(dt))
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + "({})".format(time))
             else:
-                p(star + Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["data"], tag_text, day_text)
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["text"], tag_text, day_text)
     print()
     print_footer()
     print_total()
@@ -254,7 +267,7 @@ def undo(args):
         state = s._States.load(rm=False)
         if state is False:
             print()
-            p(Back.RED + "[!]", Fore.RED + "No available state to be undone")
+            p(Fore.RED + "[!] Already at oldest change")
             print()
             return
         print()
@@ -263,7 +276,7 @@ def undo(args):
         print()
         ask = input("[?] Continue (y/n) ? ")
         if ask != "y":
-            print(Back.RED + "[!]", Fore.RED + "Operation Aborted")
+            print(Fore.RED + "[!] Operation Aborted")
             return
         s.load_state()
         print(color + "[^] Undone", get_color(state["action"]) + "=>", Style.DIM + "{}".format(state["info"]))
@@ -290,240 +303,37 @@ def export(args):
     print()
 
 
-def reset(args):
-    color = get_color("reset")
-    clear_config = args.config
-    print()
-    if clear_config is True:
-        p(Back.RED + "[!]", Fore.RED + "This will reset the current configurations to default")
-    else:
-        p(Back.RED + "[!]", Fore.RED + "This will delete all saved data of Noteboard")
-    print()
-    ask = input("[?] Continue (y/n) ? ")
-    if ask != "y":
-        print(Back.RED + "[!]", Fore.RED + "Operation Aborted")
-        return
-    if clear_config is True:
-        init_config()
-        print(Fore.GREEN + "Done:", color + "Configurations has reset")
-    else:
-        for file in os.listdir(DIR_PATH):
-            os.remove(os.path.join(DIR_PATH, file))
-        print(Fore.GREEN + "Done:", color + "Program has reset")
-
-
-def interactive_prompt():
-
-    def invalid(text=None):
-        nonlocal arrow_color
-        arrow_color = Fore.RED
-        if text == "":
-            return
-        if text is None:
-            print(Fore.RED + "Invalid input")
-        else:
-            print(Fore.RED + str(text))
-    
-    def check_digit(item_ids):
-        nondigit = False
-        for item in items:
-            if not item.isdigit():
-                nondigit = True
-                break
-        return nondigit
-
-    arrow_color = Fore.GREEN
-    display_board()
-    print(Fore.LIGHTBLACK_EX + "[Type ? for help, q or ctrl-c to quit]")
-    print(Fore.LIGHTBLACK_EX + "[Commands: add/remove/clear/(un)tick/(un)mark/(un)star/edit/(un)tag/undo/import]")
-    print(Fore.LIGHTBLACK_EX + "[Tips: You can use , (without space) to seperate multiple boards and items]")
-    while True:
-        try:
-            command = input(Fore.YELLOW + Style.BRIGHT + "[Noteboard]" + Style.RESET_ALL + arrow_color + "=> " + Fore.RESET)
-            command = command.strip()
-            if command == "":
-                # display board
-                pass
-            elif command in ("?", "help"):
-                # print help
-                parser.print_help()
-                continue
-            elif command == "commands":
-                # show all available commands
-                print(Fore.LIGHTBLACK_EX + "[Commands: add/remove/clear/(un)tick/(un)mark/(un)star/edit/(un)tag/undo/import]")
-                continue
-            elif command == "q":
-                # quit
-                confirm = input(Style.BRIGHT + "Are you sure (y/n) ? " + Style.RESET_ALL)
-                if confirm in ("y", "yes"):
-                    return
-                continue
-            elif command == "add":
-                # Prompt
-                text = input("[+] Item text >> ").strip()
-                if not text:
-                    invalid()
-                    continue
-                boards = input("[+] Add to (default: Board) >> ").split(",")
-                boards = [board.strip() for board in boards]
-                # Add
-                with Storage() as s:
-                    for board in boards:
-                        s.add_item(board, text)
-            elif command == "remove":
-                # Prompt
-                items = input("[-] Item id >> ").split(",")
-                if check_digit(items):
-                    invalid()
-                    continue
-                # Remove
-                with Storage() as s:
-                    for item in items:
-                        s.remove_item(int(item))
-            elif command == "clear":
-                # Prompt
-                boards = input("[X] Clear (default: all) >> ").split(",")
-                boards = [board.strip() for board in boards]
-                # Clear
-                with Storage() as s:
-                    if boards:
-                        for board in boards:
-                            s.clear_board(board)
-                    else:
-                        s.clear_board()
-            elif command in ("tick", "mark", "star", "untick", "unmark", "unstar"):
-                # Prompt
-                items = input("@ Item id >> ").split(",")
-                if check_digit(items):
-                    invalid()
-                    continue
-                if command.startswith("un"):
-                    # Modify
-                    with Storage() as s:
-                        for item in items:
-                            s.modify_item(int(item), command[2:], False)
-                else:
-                    # Modify
-                    with Storage() as s:
-                        for item in items:
-                            s.modify_item(int(item), command, True)
-            elif command == "edit":
-                # Prompt
-                item = input("[~] Item id >> ")
-                if not item.isdigit():
-                    invalid()
-                    continue
-                text = input("[~] New text >> ").strip()
-                if not text:
-                    invalid()
-                    continue
-                # Edit
-                with Storage() as s:
-                    s.modify_item(int(item), "data", text)
-            elif command == "tag":
-                # Prompt
-                items = input("[#] Item id >> ").split(",")
-                if check_digit(items):
-                    invalid()
-                    continue
-                text = input("[#] Tag text >> ").strip()
-                if not text:
-                    invalid()
-                    continue
-                if len(text) > 10:
-                    invalid("Tag text length should not be longer than 10 characters")
-                    continue
-                color = input("[#] Tag color (default: BLUE) >> ").strip()
-                if color == "":
-                    color = "BLUE"
-                # Tag
-                try:
-                    tag_color = eval("Back." + color.upper())
-                except Exception:
-                    invalid("colorama.Back has no attribute '{}'".format(color.upper()))
-                    continue
-                tag_text = tag_color + Style.DIM + "#" + Style.RESET_ALL + tag_color + text + " " + Back.RESET
-                with Storage() as s:
-                    for item in items:
-                        s.modify_item(int(item), "tag", tag_text)
-            elif command == "untag":
-                # Prompt
-                items = input("[#] Item id >> ").split(",")
-                if check_digit(items):
-                    invalid()
-                    continue
-                # Untag
-                with Storage() as s:
-                    for item in items:
-                        s.modify_item(int(item), "tag", "")
-            elif command == "undo":
-                with Storage() as s:
-                    state = s._States.load(rm=False)
-                    if state is False:
-                        invalid("No available state to be undone")
-                        continue
-                    print(Style.BRIGHT + "Last Action:", state["info"])
-                    confirm = input("[?] Continue (y/n) ? ")
-                    if confirm in ("y", "yes"):
-                        # Undo
-                        s.load_state()
-                    else:
-                        continue
-            elif command == "import":
-                # Prompt
-                path = input("[I] File path >> ").strip()
-                if path == "":
-                    invalid()
-                    continue
-                # Import
-                with Storage() as s:
-                    s.import_(path)
-            else:
-                # invalid command
-                invalid("Invalid command")
-                continue
-        except NoteboardException as e:
-            print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
-            invalid("")
-            continue
-        except KeyboardInterrupt:
-            return
-        display_board()
-        arrow_color = Fore.GREEN
-
-
 def main():
-    global parser
-    usage = "board [-h] [--version] [-st] {add,remove,clear,tick,mark,star,edit,tag,run,undo,import,export,reset}"
-    description = (Style.BRIGHT + "    \033[4mNoteboard" + Style.RESET_ALL + " lets you store your " + Fore.YELLOW + "notes" + Fore.RESET + " and " + Fore.CYAN + "commands" + Fore.RESET + " in a " + Fore.LIGHTMAGENTA_EX + "fancy" + Fore.RESET + " way.")
+    description = (Style.BRIGHT + "    \033[4mNoteboard" + Style.RESET_ALL + " lets you manage your " + Fore.YELLOW + "notes" + Fore.RESET + " & " + Fore.CYAN + "tasks" + Fore.RESET + " in a " + Fore.LIGHTMAGENTA_EX + "tidy" + Fore.RESET + " and " + Fore.LIGHTMAGENTA_EX + "fancy" + Fore.RESET + " way.")
     epilog = \
 """
 Examples:
-  $ board add "improve cli" -b "Noteboard Todo List"
+  $ board add "improve cli" -b "Todo List"
   $ board remove 1
-  $ board clear -b "Noteboard Todo List"
+  $ board clear -b "Todo List"
   $ board edit 1 "improve cli help message"
   $ board tag 1 "enhancement" -c GREEN
   $ board import ~/Documents/board.json
   $ board export ~/Documents/
 
-Made with \u2764 by AlphaXenon
-"""
+{0}Made with {1}\u2764{2} by AlphaXenon{3}
+""".format(Style.BRIGHT, Fore.RED, Fore.RESET, Style.RESET_ALL)
     parser = argparse.ArgumentParser(
         prog="board",
-        usage=usage,
+        usage="board [-h]",
         description=description,
         epilog=epilog,
         formatter_class=argparse.RawTextHelpFormatter
     )
+    parser._positionals.title = "Actions"
+    parser._optionals.title = "Options"
     parser.add_argument("--version", action="version", version="noteboard " + __version__)
     parser.add_argument("-st", "--show-time", help="show boards with the added time of every items", default=False, action="store_true", dest="st")
-    parser.add_argument("-i", "--interactive", help="enter interactive mode", default=False, action="store_true")
     subparsers = parser.add_subparsers()
 
     add_parser = subparsers.add_parser("add", help=get_color("add") + "[+] Add an item to a board" + Fore.RESET)
     add_parser.add_argument("item", help="the item you want to add", type=str, metavar="<item text>")
-    add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format(DEFAULTS["board"]), type=str, metavar="<name>")
+    add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format("Board"), type=str, metavar="<name>")
     add_parser.set_defaults(func=add)
 
     remove_parser = subparsers.add_parser("remove", help=get_color("remove") + "[-] Remove an item" + Fore.RESET)
@@ -534,7 +344,7 @@ Made with \u2764 by AlphaXenon
     clear_parser.add_argument("-b", "--board", help="clear this specific board only", type=str, metavar="<name>")
     clear_parser.set_defaults(func=clear)
 
-    tick_parser = subparsers.add_parser("tick", help=get_color("tick") + "[✔] Tick/Untick an item" + Fore.RESET)
+    tick_parser = subparsers.add_parser("tick", help=get_color("tick") + "[✓] Tick/Untick an item" + Fore.RESET)
     tick_parser.add_argument("item", help="id of the item you want to tick/untick", type=int, metavar="<item id>")
     tick_parser.set_defaults(func=tick)
 
@@ -564,7 +374,7 @@ Made with \u2764 by AlphaXenon
     undo_parser = subparsers.add_parser("undo", help=get_color("undo") + "[^] Undo the last action" + Fore.RESET)
     undo_parser.set_defaults(func=undo)
 
-    import_parser = subparsers.add_parser("import", help=get_color("import") + "[I] Import and load a JSON file, overwriting the current data with it" + Fore.RESET)
+    import_parser = subparsers.add_parser("import", help=get_color("import") + "[I] Import and load boards from JSON file" + Fore.RESET)
     import_parser.add_argument("path", help="path to the target import file", type=str, metavar="<path>")
     import_parser.set_defaults(func=import_)
 
@@ -572,24 +382,17 @@ Made with \u2764 by AlphaXenon
     export_parser.add_argument("-d", "--dest", help="destination of the exported file (default: ./board.json)", type=str, default="./board.json", metavar="<destination path>")
     export_parser.set_defaults(func=export)
 
-    reset_parser = subparsers.add_parser("reset", help=get_color("reset") + "[R] Reset settings to default" + Fore.RESET)
-    reset_parser.add_argument("-c", "--config", help="reset configurations only", default=False, action="store_true", dest="config")
-    reset_parser.set_defaults(func=reset)
-
     args = parser.parse_args()
     init(autoreset=True)
-    if args.interactive:
-        interactive_prompt()
+    try:
+        args.func
+    except AttributeError:
+        display_board(st=args.st)
     else:
         try:
-            try:
-                args.func(args)
-            except AttributeError:
-                raise
-            except NoteboardException as e:
-                print(Back.RED + "[!]", Style.BRIGHT + Fore.RED + "ERROR:", str(e))
-            except Exception as e:
-                print(Back.RED + "[!]", Style.BRIGHT + Fore.RED + "Uncaught Exception:", str(e))
-        except AttributeError:
-            display_board(st=args.st)
+            args.func(args)
+        except NoteboardException as e:
+            print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
+        except Exception as e:
+            print(Style.BRIGHT + Fore.RED + "Uncaught Exception:", str(e))
     deinit()
