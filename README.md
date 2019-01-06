@@ -11,6 +11,7 @@
 * Import boards from external JSON files & Export boards as JSON files
 * Save & Load states
 * Undo previous actions / changes
+* Interactive mode for dynamic operations
 * Store data using the `shelve` standard library
 
 ## Installation
@@ -159,7 +160,7 @@ The exported JSON file is named `board.json`.
 
 Some terminal emulators may not support dimmed (`Style.DIM`) & underlined (`\033[4m`) text.
 
-The program also uses symbols such as `⭑` and `✔` which also may not be displayed properly in some terminal emulators.
+The program also uses symbols such as `⭑` and `✔` which also may not be displayed properly in some terminal emulators and Windows cmd.
 
 ### Tested On:
 

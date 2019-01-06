@@ -1,13 +1,27 @@
 import argparse
 import sys
 import os
+import cmd
 import datetime
+import shlex
+import traceback
 from colorama import init, deinit, Fore, Back, Style
 
 from . import DIR_PATH
 from .__version__ import __version__
 from .storage import Storage, NoteboardException
 from .utils import get_time
+
+# trying to import the optional prompt toolkit library
+PPT = True
+try:
+    from prompt_toolkit import prompt
+    from prompt_toolkit.shortcuts import confirm
+    from prompt_toolkit.styles import Style as PromptStyle
+    from prompt_toolkit.completion import WordCompleter
+    from prompt_toolkit.validation import Validator, ValidationError
+except ImportError:
+    PPT = False
 
 COLORS = {
     "add": Fore.GREEN,
@@ -19,7 +33,7 @@ COLORS = {
     "star": Fore.YELLOW,
     "tag": Fore.LIGHTBLUE_EX,
     "edit": Fore.LIGHTCYAN_EX,
-    "undo": Fore.LIGHTYELLOW_EX,
+    "undo": Fore.LIGHTCYAN_EX,
     "import": "",
     "export": "",
 }
@@ -64,7 +78,6 @@ def run(args):
         i = s.get_item(item)
     # Run
     import subprocess
-    import shlex
     cmd = shlex.split(i["text"])
     if "|" in cmd:
         command = i["text"]
@@ -190,7 +203,11 @@ def tag(args):
         print(Fore.RED + "[!] Tag text length should not be longer than 10 characters")
         return
     if text != "":
-        tag_color = eval("Back." + c.upper())
+        try:
+            tag_color = eval("Back." + c.upper())
+        except AttributeError:
+            print(Fore.RED + "[!] 'colorama.AnsiBack' object has no attribute '{}'".format(c.upper()))
+            return
         tag_text = tag_color + Style.DIM + "#" + Style.RESET_ALL + tag_color + text + " " + Back.RESET
     else:
         tag_text = ""
@@ -204,15 +221,59 @@ def tag(args):
     print()
 
 
-def display_board(st=False):
-    """
-    :param st=False: display time if True
-    """
+def undo(args):
+    color = get_color("undo")
+    with Storage() as s:
+        state = s._States.load(rm=False)
+        if state is False:
+            print(Fore.RED + "[!] Already at oldest change")
+            return
+        print()
+        p(color + Style.BRIGHT + "Last Action:")
+        p("=>", get_color(state["action"]) + state["info"])
+        print()
+        ask = input("[?] Continue (y/n) ? ")
+        if ask != "y":
+            print(Fore.RED + "[!] Operation Aborted")
+            return
+        s.load_state()
+        print(color + "[^] Undone", "=>", get_color(state["action"]) + state["info"])
+
+
+def import_(args):
+    color = get_color("import")
+    path = args.path
+    with Storage() as s:
+        full_path = s.import_(path)
+    print()
+    p(color + "[I] Imported boards from", Style.BRIGHT + full_path)
+    print_total()
+    print()
+
+
+def export(args):
+    color = get_color("export")
+    dest = args.dest
+    with Storage() as s:
+        full_path = s.export(dest)
+    print()
+    p(color + "[E] Exported boards to", Style.BRIGHT + full_path)
+    print()
+
+
+def display_board(st=False, im=False):
     with Storage() as s:
         shelf = dict(s.shelf)
+
+    # print initial help message
     if not shelf:
         print()
-        p(Style.BRIGHT + "Type", Style.BRIGHT + Fore.YELLOW + "`board --help`", Style.BRIGHT + "to get started")
+        if im is True:
+            c = "`help`"
+        else:
+            c = "`board --help`"
+        p(Style.BRIGHT + "Type", Style.BRIGHT + Fore.YELLOW + c, Style.BRIGHT + "to get started")
+
     for board in shelf:
         # Print Board title
         if len(shelf[board]) == 0:
@@ -261,46 +322,205 @@ def display_board(st=False):
     print()
 
 
-def undo(args):
-    color = get_color("undo")
-    with Storage() as s:
-        state = s._States.load(rm=False)
-        if state is False:
-            print()
-            p(Fore.RED + "[!] Already at oldest change")
-            print()
+def action(func):
+    def inner(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+        except NoteboardException as e:
+            print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
+        except Exception:
+            exc = sys.exc_info()
+            exc = traceback.format_exception(*exc)
+            print(Style.BRIGHT + Fore.RED + "Uncaught Exception:", "".join(exc))
+        else:
+            return result
+    return inner
+
+
+class InteractivePrompt(cmd.Cmd):
+
+    class ItemValidator(Validator):
+        def __init__(self, all_ids):
+            self.all_ids = all_ids
+            Validator.__init__(self)
+        def validate(self, document):
+            text = document.text.strip()
+            if text:
+                try:
+                    items = shlex.split(text)
+                except ValueError:
+                    # ValueError("No closing quotations.")
+                    items = text.split(" ")
+                for item in items:
+                    if not item.isdigit():
+                        raise ValidationError(message="Input contains non-numeric characters")
+                    if int(item) not in self.all_ids:
+                        raise ValidationError(message="Item '{}' does not exist".format(item))
+
+    intro = "{0}(Interactive Mode){1} Type help or ? to list all available commands.{2}".format(Fore.LIGHTMAGENTA_EX, Fore.LIGHTCYAN_EX, Fore.RESET)
+    prompt = Style.BRIGHT + Fore.YELLOW + "[noteboard]" + Style.RESET_ALL + " "
+    commands = ["add", "remove", "clear", "edit", "undo", "import", "quit"]
+    
+    def do_help(self, arg):
+        print(Fore.LIGHTCYAN_EX + "Commands:   ", "    ".join(self.commands))
+
+    @action
+    def do_add(self, arg):
+        with Storage() as s:
+            all_boards = s.boards
+         # completer
+        board_completer = WordCompleter(all_boards)
+        # prompt
+        item = prompt("[?] Item text: ").strip()
+        if not item:
+            print(Fore.RED + "[!] Operation aborted")
             return
-        print()
-        p(color + Style.BRIGHT + "Last Action:")
-        p(get_color(state["action"]) + "=>", state["info"])
-        print()
-        ask = input("[?] Continue (y/n) ? ")
-        if ask != "y":
+        print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
+        boards = prompt("[?] Board: ", completer=board_completer, complete_while_typing=True).strip()
+        boards = shlex.split(boards)
+        if not boards:
+            print(Fore.RED + "[!] Operation aborted")
+        # do add item
+        with Storage() as s:
+            for board in boards:
+                s.add_item(board, item)
+
+    @action
+    def do_remove(self, arg):
+        with Storage() as s:
+            all_ids = s.ids
+        if not all_ids:
+            print(Fore.RED + "[!] No item to be removed")
+            return
+        # completer
+        item_completer = WordCompleter([str(id) for id in all_ids])
+        print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
+        answer = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
+        if not answer:
+            print(Fore.RED + "[!] Operation aborted")
+            return
+        # do remove item
+        with Storage() as s:
+            ids = shlex.split(answer)
+            for id in ids:
+                s.remove_item(int(id))
+
+    @action
+    def do_clear(self, arg):
+        with Storage() as s:
+            all_boards = s.boards
+        if not all_boards:
+            print(Fore.RED + "[!] No board to be cleared")
+            return
+        # validator for validating board existence
+        class BoardValidator(Validator):
+            def validate(self, document):
+                text = document.text.strip()
+                if text and text != "all":
+                    try:
+                        boards = shlex.split(text)
+                    except ValueError:
+                        # ValueError("No closing quotations.")
+                        boards = text.split(" ")
+                    for board in boards:
+                        if board not in all_boards:
+                            raise ValidationError(message="Board '{}' does not exist".format(board))
+        # completer
+        board_completer = WordCompleter(all_boards)
+        # prompt
+        print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
+        answer = prompt("[?] Board (`all` to clear all boards): ", completer=board_completer, validator=BoardValidator(), complete_while_typing=True).strip()
+        if not answer:
+            print(Fore.RED + "[!] Operation aborted")
+            return
+        elif answer == "all":
+            # clear all boards
+            if not confirm("[!] Clear all boards ?"):
+                print(Fore.RED + "[!] Operation Aborted")
+                return
+        # do clear boards
+        with Storage() as s:
+            if answer == "all":
+                s.clear_board()
+            else:
+                boards = shlex.split(answer)
+                for board in boards:
+                    s.clear_board(board=board)
+
+    @action
+    def do_edit(self, arg):
+        with Storage() as s:
+            all_ids = s.ids
+        if not all_ids:
+            print(Fore.RED + "[!] No item to be removed")
+            return
+        # completer
+        item_completer = WordCompleter([str(id) for id in all_ids])
+        # prompt
+        print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
+        items = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
+        if not items:
+            print(Fore.RED + "[!] Operation aborted")
+            return
+        text = prompt("[?] New text: ").strip()
+        if not text:
+            print(Fore.RED + "[!] Operation aborted")
+            return
+        # do edit item
+        with Storage() as s:
+            ids = shlex.split(items)
+            for id in ids:
+                s.modify_item(int(id), "text", text)
+
+    @action
+    def do_undo(self, arg):
+        with Storage() as s:
+            state = s._States.load(rm=False)
+            if state is False:
+                print(Fore.RED + "[!] Already at oldest change")
+                return
+            print(get_color("undo") + Style.BRIGHT + "Last Action:")
+            print("=>", get_color(state["action"]) + state["info"])
+            if not confirm("[!] Continue ?"):
+                print(Fore.RED + "[!] Operation Aborted")
+                return
+            s.load_state()
+
+    @action
+    def do_import(self, arg):
+        # validator for validating existence of file / directory of the path
+        class PathValidator(Validator):
+            def validate(self, document):
+                text = document.text.strip()
+                if text:
+                    path = os.path.abspath(text)
+                    if os.path.isdir(path):
+                        raise ValidationError(message="Path '{}' is a directory".format(path))
+                    if not os.path.isfile(path):
+                        raise ValidationError(message="File '{}' does not exist".format(path))
+        # prompt
+        answer = prompt("[?] File path: ", validator=PathValidator()).strip()
+        if not answer:
             print(Fore.RED + "[!] Operation Aborted")
             return
-        s.load_state()
-        print(color + "[^] Undone", get_color(state["action"]) + "=>", Style.DIM + "{}".format(state["info"]))
+        # do import
+        with Storage() as s:
+            s.import_(answer)
 
+    def do_quit(self, arg):
+        sys.exit(0)
+    
+    def default(self, line):
+        print(Style.BRIGHT + Fore.RED + "ERROR:", "Invalid command '{}'".format(line))
+        return line
 
-def import_(args):
-    color = get_color("import")
-    path = args.path
-    with Storage() as s:
-        full_path = s.import_(path)
-    print()
-    p(color + "[I] Imported boards from", Style.BRIGHT + full_path)
-    print_total()
-    print()
+    def postcmd(self, stop, line):        
+        if line not in self.commands:
+            return
+        display_board(im=True)
 
-
-def export(args):
-    color = get_color("export")
-    dest = args.dest
-    with Storage() as s:
-        full_path = s.export(dest)
-    print()
-    p(color + "[E] Exported boards to", Style.BRIGHT + full_path)
-    print()
+    def emptyline(self):
+        display_board(im=True)
 
 
 def main():
@@ -320,7 +540,6 @@ Examples:
 """.format(Style.BRIGHT, Fore.RED, Fore.RESET, Style.RESET_ALL)
     parser = argparse.ArgumentParser(
         prog="board",
-        usage="board [-h]",
         description=description,
         epilog=epilog,
         formatter_class=argparse.RawTextHelpFormatter
@@ -329,6 +548,7 @@ Examples:
     parser._optionals.title = "Options"
     parser.add_argument("--version", action="version", version="noteboard " + __version__)
     parser.add_argument("-st", "--show-time", help="show boards with the added time of every items", default=False, action="store_true", dest="st")
+    parser.add_argument("-i", "--interactive", help="enter interactive mode", default=False, action="store_true", dest="i")
     subparsers = parser.add_subparsers()
 
     add_parser = subparsers.add_parser("add", help=get_color("add") + "[+] Add an item to a board" + Fore.RESET)
@@ -384,15 +604,27 @@ Examples:
 
     args = parser.parse_args()
     init(autoreset=True)
-    try:
-        args.func
-    except AttributeError:
-        display_board(st=args.st)
+    if args.i:
+        if PPT is False:
+            print(Style.BRIGHT + Fore.RED + "ERROR:", Fore.YELLOW + "Looks like you don't have 'prompt toolkit' library installed. Therefore, you will not be able to use interactive mode.")
+            print(Fore.GREEN + "You can install it with `pip3 install prompt_toolkit`.")
+        else:
+            try:
+                InteractivePrompt().cmdloop()
+            except KeyboardInterrupt:
+                pass
     else:
         try:
-            args.func(args)
-        except NoteboardException as e:
-            print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
-        except Exception as e:
-            print(Style.BRIGHT + Fore.RED + "Uncaught Exception:", str(e))
+            args.func
+        except AttributeError:
+            display_board(st=args.st)
+        else:
+            try:
+                args.func(args)
+            except NoteboardException as e:
+                print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
+            except Exception:
+                exc = sys.exc_info()
+                exc = traceback.format_exception(*exc)
+                print(Style.BRIGHT + Fore.RED + "Uncaught Exception:", "".join(exc))
     deinit()

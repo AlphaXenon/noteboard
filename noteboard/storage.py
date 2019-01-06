@@ -132,14 +132,25 @@ class Storage:
         if self._shelf is None:
             raise_error(NoteboardException("No opened shelf object to be accessed"))
         return self._shelf
-    
+
+    @property
+    def boards(self):
+        """Get all existing board titles"""
+        return list(self.shelf.keys())
+
+    @property
+    def ids(self):
+        """Get all existing item ids"""
+        results = []
+        for board in self.shelf:
+            for item in self.shelf[board]:
+                results.append(item["id"])
+        return sorted(results)
+
     @property
     def total(self):
         """Get the total amount of items in all boards."""
-        amt = 0
-        for board in self.shelf:
-            amt += len(self.shelf[board])
-        return amt
+        return len(self.boards)
 
     def get_item(self, id):
         """Get the item with the give ID. ItemNotFoundError will be raised if nothing found."""
@@ -193,10 +204,9 @@ class Storage:
         # Set ID
         current_id = 1
         # get all existing ids
-        items = self.get_all_items()
-        ids = list(sorted(items, key=lambda x: x["id"]))
+        ids = self.ids
         if ids:
-            current_id = ids[-1]["id"] + 1
+            current_id = ids[-1] + 1
         # Set Board Name
         board = board or "Board"
         # Save
@@ -244,7 +254,7 @@ class Storage:
             int -- total amount of items removed
         """
         if not board:
-            amt = len(self.get_all_items())
+            amt = len(self.ids)
             # save
             self._save_state("Clear {} items on all boards".format(amt), "clear")
             # remove all items of all boards
@@ -294,7 +304,7 @@ class Storage:
         raise_error(ItemNotFoundError(id))
     
     def _validate_json(self, data):
-        keys = ["id", "text", "time", "tick", "mark", "star", "tag"]
+        keys = ["id", "text", "time", "date", "tick", "mark", "star", "tag"]
         for board in data:
             if str(board) == "":
                 return False

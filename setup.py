@@ -30,6 +30,7 @@ Noteboard lets you manage your notes & tasks in a tidy and fancy way.
 * Import boards from external JSON files & Export boards as JSON files
 * Save & Load states
 * Undo previous actions / changes
+* Interactive mode for dynamic operations
 * Store data using the `shelve` library
 """
 
