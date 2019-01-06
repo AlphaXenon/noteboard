@@ -1,17 +1,46 @@
-# Noteboard
+<h1 align="center">$ noteboard</h1>
 
-**Noteboard** is a mini command-line tool which lets you manage and store your notes & tasks in a tidy and fancy way.
+<p align="center"><img src="./screenshot.jpg"></p>
+
+[![pypi](https://img.shields.io/pypi/v/noteboard.svg)](https://pypi.python.org/pypi/noteboard) [![downloads](https://img.shields.io/pypi/dm/noteboard.svg)](https://pypi.python.org/pypi/noteboard) [![license](https://img.shields.io/github/license/AlphaXenon/noteboard.svg)](./LICENSE.txt)
+
+**Noteboard** is a mini command-line tool which lets you manage and store your notes & tasks in a tidy and fancy way, right inside your terminal.
+
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+  - [from source](#from-source)
+  - [via PyPI](#via-pypi)
+  - [Requirements](#requirements)
+- [Usage](#usage)
+  - [View Boards](#view-boards)
+  - [Add Item](#add-item)
+  - [Remove Item](#remove-item)
+  - [Clear Board](#clear-board)
+  - [Tick / Mark / Star Item](#tick--mark--star-item)
+  - [Edit Item](#edit-item)
+  - [Tag Item](#tag-item)
+  - [Run Item as Command](#run-item-as-command)
+  - [Undo Previous Actions](#undo-previous-actions)
+  - [Import Boards from External JSON File](#import-boards-from-external-json-file)
+  - [Export Boards Data as JSON File](#export-boards-data-as-json-file)
+- [Interactive Mode](#interactive-mode)
+- [Cautions](#cautions)
+- [Credit](#credit)
+- [License](#license)
 
 ## Features
 
-* Fancy interface
-* Lightweight & Easy to use
-* Manage notes & tasks in multiple boards
-* Run item as command inside terminal (subprocess)
+* Fancy interface ✨
+* Simple & Easy to use 
+* Fast as lightning ⚡️
+* Manage notes & tasks in multiple boards 🗒
+* Run item as command inside terminal (subprocess) 💨
 * Import boards from external JSON files & Export boards as JSON files
 * Save & Load states
 * Undo previous actions / changes
 * Interactive mode for dynamic operations
+* Autocomplete & Autosuggestions in interactive mode
 * Store data using the `shelve` standard library
 
 ## Installation
@@ -28,9 +57,13 @@ $ [sudo] python3 setup.py install
 
 `pip3 install noteboard`
 
-### Dependency
+### Requirements
 
-[colorama](https://github.com/tartley/colorama) -> for stylizing interface
+**Python 3.6 or above**
+
+[colorama](https://github.com/tartley/colorama) --> for stylizing interface
+
+[prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit) [optional] --> for interactive mode prompts
 
 ## Usage
 
@@ -53,13 +86,19 @@ Positional Arguments:
 Optional Arguments:
     -h, --help          show this help message and exit
     -st, --show-time    show boards with the added time of every items
+    -i, --interactive   enter interactive mode
 ```
+
+---
 
 ### View Boards
 
 `board`
 
 * `-st/--show-time` : show boards with the added time of each items
+* `-i/--interactive` : enter [interactive mode](#interactive-mode)
+
+---
 
 ### Add Item
 
@@ -69,9 +108,13 @@ Optional Arguments:
 
 If no `board` is given, the item will be added to the default board (configured in `config.ini`)
 
+---
+
 ### Remove Item
 
 `board remove <item id>`
+
+---
 
 ### Clear Board
 
@@ -83,15 +126,21 @@ Remove all items in the board.
 
 If no `board` is given, all boards will be cleared.
 
+---
+
 ### Tick / Mark / Star Item
 
 `board {tick, mark, star} <item id>`
 
 Run this command again on the same item to untick/unmark/unstar the item
 
+---
+
 ### Edit Item
 
 `board edit <item id> <new text>`
+
+---
 
 ### Tag Item
 
@@ -102,6 +151,8 @@ Run this command again on the same item to untick/unmark/unstar the item
 
 If no `text` is given, existing tag of this item will be removed.
 
+---
+
 ### Run Item as Command
 
 `board run <item id>`
@@ -111,6 +162,8 @@ This will spawn a subprocess to execute the command.
 *NOTE: Some commands may not work properly in subprocess, such as pipes.*
 
 **TODO:** Execute command in a peseudo terminal.
+
+---
 
 ### Undo Previous Actions
 
@@ -123,6 +176,8 @@ This will spawn a subprocess to execute the command.
 * clear
 * edit
 * import
+
+---
 
 ### Import Boards from External JSON File
 
@@ -139,6 +194,7 @@ The JSON file must be in a valid structure simillar to the following.
             "id": 1,
             "data": "item text",
             "time": "<timestamp>",
+            "date": "<human readable date format>",
             "tick": false,
             "mark": false,
             "star": false,
@@ -148,6 +204,8 @@ The JSON file must be in a valid structure simillar to the following.
 }
 ```
 
+---
+
 ### Export Boards Data as JSON File
 
 `board export`
@@ -155,6 +213,26 @@ The JSON file must be in a valid structure simillar to the following.
 * `-d/--dest <destination path>` : destination path of the exported file (directory)
 
 The exported JSON file is named `board.json`.
+
+---
+
+## Interactive Mode
+
+Use `board -i/--interactive` to enter interactive mode.
+
+**Commands:**
+
+1. add
+2. remove
+3. clear
+4. edit
+5. undo
+6. import
+7. quit
+
+Enter an empty line to view boards. Enter an empty line in prompt to abort operation.
+
+*NOTE: You can use quotations (`'` or `"`) to specify multiple board titles / board titles that contain spaces and item ids.*
 
 ## Cautions
 
@@ -167,6 +245,12 @@ The program also uses symbols such as `⭑` and `✔` which also may not be disp
 **Shells:** bash, zsh
 
 **Terminal Emulators:** iTerm2
+
+## Contributing
+
+Feel free to open issues for bug reports and feature requests ! (If you are reporting bugs, please include the log file `~/.noteboard/noteboard.log`).
+
+I'm currently working on the compatibility with Python 2. Any help via pull requests would be great !
 
 ## Credit
 
