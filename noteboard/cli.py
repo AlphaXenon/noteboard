@@ -357,8 +357,8 @@ class InteractivePrompt(cmd.Cmd):
                     if int(item) not in self.all_ids:
                         raise ValidationError(message="Item '{}' does not exist".format(item))
 
-    intro = "{0}(Interactive Mode){1} Type help or ? to list all available commands.{2}".format(Fore.LIGHTMAGENTA_EX, Fore.LIGHTCYAN_EX, Fore.RESET)
-    prompt = Style.BRIGHT + Fore.YELLOW + "[noteboard]" + Style.RESET_ALL + " "
+    intro = "{0}[Interactive Mode]{1} Type help or ? to list all available commands.".format(Fore.LIGHTMAGENTA_EX, Fore.RESET)
+    prompt = "{}@{}(noteboard){}>>${}".format(Fore.CYAN, Style.BRIGHT + Fore.YELLOW, Fore.RESET, Style.RESET_ALL) + " "
     commands = ["add", "remove", "clear", "edit", "undo", "import", "quit"]
     
     def do_help(self, arg):
