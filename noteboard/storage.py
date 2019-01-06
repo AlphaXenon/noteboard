@@ -150,7 +150,7 @@ class Storage:
     @property
     def total(self):
         """Get the total amount of items in all boards."""
-        return len(self.boards)
+        return len(self.ids)
 
     def get_item(self, id):
         """Get the item with the give ID. ItemNotFoundError will be raised if nothing found."""

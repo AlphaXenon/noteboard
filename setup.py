@@ -31,6 +31,7 @@ Noteboard lets you manage your notes & tasks in a tidy and fancy way.
 * Save & Load states
 * Undo previous actions / changes
 * Interactive mode for dynamic operations
+* Autocomplete & Autosuggestions in interactive mode
 * Store data using the `shelve` library
 """
 
@@ -46,7 +47,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     entry_points={
-        "console_scripts": ["board=noteboard.main:main"],
+        "console_scripts": ["board=noteboard.cli:main"],
     },
     install_requires=REQUIRED,
     include_package_data=True,

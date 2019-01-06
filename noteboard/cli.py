@@ -103,7 +103,7 @@ def add(args):
     item = args.item
     board = args.board
     if item.strip() == "":
-        print(Back.RED + "[!]", Fore.RED + "Text must not be empty")
+        print(Fore.RED + "[!] Text must not be empty")
         return
     with Storage() as s:
         i = s.add_item(board, item)
@@ -337,190 +337,191 @@ def action(func):
     return inner
 
 
-class InteractivePrompt(cmd.Cmd):
+if PPT:
+    class InteractivePrompt(cmd.Cmd):
 
-    class ItemValidator(Validator):
-        def __init__(self, all_ids):
-            self.all_ids = all_ids
-            Validator.__init__(self)
-        def validate(self, document):
-            text = document.text.strip()
-            if text:
-                try:
-                    items = shlex.split(text)
-                except ValueError:
-                    # ValueError("No closing quotations.")
-                    items = text.split(" ")
-                for item in items:
-                    if not item.isdigit():
-                        raise ValidationError(message="Input contains non-numeric characters")
-                    if int(item) not in self.all_ids:
-                        raise ValidationError(message="Item '{}' does not exist".format(item))
-
-    intro = "{0}[Interactive Mode]{1} Type help or ? to list all available commands.".format(Fore.LIGHTMAGENTA_EX, Fore.RESET)
-    prompt = "{}@{}(noteboard){}>>${}".format(Fore.CYAN, Style.BRIGHT + Fore.YELLOW, Fore.RESET, Style.RESET_ALL) + " "
-    commands = ["add", "remove", "clear", "edit", "undo", "import", "quit"]
-    
-    def do_help(self, arg):
-        print(Fore.LIGHTCYAN_EX + "Commands:   ", "    ".join(self.commands))
-
-    @action
-    def do_add(self, arg):
-        with Storage() as s:
-            all_boards = s.boards
-         # completer
-        board_completer = WordCompleter(all_boards)
-        # prompt
-        item = prompt("[?] Item text: ").strip()
-        if not item:
-            print(Fore.RED + "[!] Operation aborted")
-            return
-        print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
-        boards = prompt("[?] Board: ", completer=board_completer, complete_while_typing=True).strip()
-        boards = shlex.split(boards)
-        if not boards:
-            print(Fore.RED + "[!] Operation aborted")
-        # do add item
-        with Storage() as s:
-            for board in boards:
-                s.add_item(board, item)
-
-    @action
-    def do_remove(self, arg):
-        with Storage() as s:
-            all_ids = s.ids
-        if not all_ids:
-            print(Fore.RED + "[!] No item to be removed")
-            return
-        # completer
-        item_completer = WordCompleter([str(id) for id in all_ids])
-        print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
-        answer = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
-        if not answer:
-            print(Fore.RED + "[!] Operation aborted")
-            return
-        # do remove item
-        with Storage() as s:
-            ids = shlex.split(answer)
-            for id in ids:
-                s.remove_item(int(id))
-
-    @action
-    def do_clear(self, arg):
-        with Storage() as s:
-            all_boards = s.boards
-        if not all_boards:
-            print(Fore.RED + "[!] No board to be cleared")
-            return
-        # validator for validating board existence
-        class BoardValidator(Validator):
-            def validate(self, document):
-                text = document.text.strip()
-                if text and text != "all":
-                    try:
-                        boards = shlex.split(text)
-                    except ValueError:
-                        # ValueError("No closing quotations.")
-                        boards = text.split(" ")
-                    for board in boards:
-                        if board not in all_boards:
-                            raise ValidationError(message="Board '{}' does not exist".format(board))
-        # completer
-        board_completer = WordCompleter(all_boards)
-        # prompt
-        print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
-        answer = prompt("[?] Board (`all` to clear all boards): ", completer=board_completer, validator=BoardValidator(), complete_while_typing=True).strip()
-        if not answer:
-            print(Fore.RED + "[!] Operation aborted")
-            return
-        elif answer == "all":
-            # clear all boards
-            if not confirm("[!] Clear all boards ?"):
-                print(Fore.RED + "[!] Operation Aborted")
-                return
-        # do clear boards
-        with Storage() as s:
-            if answer == "all":
-                s.clear_board()
-            else:
-                boards = shlex.split(answer)
-                for board in boards:
-                    s.clear_board(board=board)
-
-    @action
-    def do_edit(self, arg):
-        with Storage() as s:
-            all_ids = s.ids
-        if not all_ids:
-            print(Fore.RED + "[!] No item to be removed")
-            return
-        # completer
-        item_completer = WordCompleter([str(id) for id in all_ids])
-        # prompt
-        print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
-        items = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
-        if not items:
-            print(Fore.RED + "[!] Operation aborted")
-            return
-        text = prompt("[?] New text: ").strip()
-        if not text:
-            print(Fore.RED + "[!] Operation aborted")
-            return
-        # do edit item
-        with Storage() as s:
-            ids = shlex.split(items)
-            for id in ids:
-                s.modify_item(int(id), "text", text)
-
-    @action
-    def do_undo(self, arg):
-        with Storage() as s:
-            state = s._States.load(rm=False)
-            if state is False:
-                print(Fore.RED + "[!] Already at oldest change")
-                return
-            print(get_color("undo") + Style.BRIGHT + "Last Action:")
-            print("=>", get_color(state["action"]) + state["info"])
-            if not confirm("[!] Continue ?"):
-                print(Fore.RED + "[!] Operation Aborted")
-                return
-            s.load_state()
-
-    @action
-    def do_import(self, arg):
-        # validator for validating existence of file / directory of the path
-        class PathValidator(Validator):
+        class ItemValidator(Validator):
+            def __init__(self, all_ids):
+                self.all_ids = all_ids
+                Validator.__init__(self)
             def validate(self, document):
                 text = document.text.strip()
                 if text:
-                    path = os.path.abspath(text)
-                    if os.path.isdir(path):
-                        raise ValidationError(message="Path '{}' is a directory".format(path))
-                    if not os.path.isfile(path):
-                        raise ValidationError(message="File '{}' does not exist".format(path))
-        # prompt
-        answer = prompt("[?] File path: ", validator=PathValidator()).strip()
-        if not answer:
-            print(Fore.RED + "[!] Operation Aborted")
-            return
-        # do import
-        with Storage() as s:
-            s.import_(answer)
+                    try:
+                        items = shlex.split(text)
+                    except ValueError:
+                        # ValueError("No closing quotations.")
+                        items = text.split(" ")
+                    for item in items:
+                        if not item.isdigit():
+                            raise ValidationError(message="Input contains non-numeric characters")
+                        if int(item) not in self.all_ids:
+                            raise ValidationError(message="Item '{}' does not exist".format(item))
 
-    def do_quit(self, arg):
-        sys.exit(0)
-    
-    def default(self, line):
-        print(Style.BRIGHT + Fore.RED + "ERROR:", "Invalid command '{}'".format(line))
-        return line
+        intro = "{0}[Interactive Mode]{1} Type help or ? to list all available commands.".format(Fore.LIGHTMAGENTA_EX, Fore.RESET)
+        prompt = "{}@{}(noteboard){}>>${}".format(Fore.CYAN, Style.BRIGHT + Fore.YELLOW, Fore.RESET, Style.RESET_ALL) + " "
+        commands = ["add", "remove", "clear", "edit", "undo", "import", "quit"]
+        
+        def do_help(self, arg):
+            print(Fore.LIGHTCYAN_EX + "Commands:   ", "    ".join(self.commands))
 
-    def postcmd(self, stop, line):        
-        if line not in self.commands:
-            return
-        display_board(im=True)
+        @action
+        def do_add(self, arg):
+            with Storage() as s:
+                all_boards = s.boards
+            # completer
+            board_completer = WordCompleter(all_boards)
+            # prompt
+            item = prompt("[?] Item text: ").strip()
+            if not item:
+                print(Fore.RED + "[!] Operation aborted")
+                return
+            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
+            boards = prompt("[?] Board: ", completer=board_completer, complete_while_typing=True).strip()
+            boards = shlex.split(boards)
+            if not boards:
+                print(Fore.RED + "[!] Operation aborted")
+            # do add item
+            with Storage() as s:
+                for board in boards:
+                    s.add_item(board, item)
 
-    def emptyline(self):
-        display_board(im=True)
+        @action
+        def do_remove(self, arg):
+            with Storage() as s:
+                all_ids = s.ids
+            if not all_ids:
+                print(Fore.RED + "[!] No item to be removed")
+                return
+            # completer
+            item_completer = WordCompleter([str(id) for id in all_ids])
+            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
+            answer = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
+            if not answer:
+                print(Fore.RED + "[!] Operation aborted")
+                return
+            # do remove item
+            with Storage() as s:
+                ids = shlex.split(answer)
+                for id in ids:
+                    s.remove_item(int(id))
+
+        @action
+        def do_clear(self, arg):
+            with Storage() as s:
+                all_boards = s.boards
+            if not all_boards:
+                print(Fore.RED + "[!] No board to be cleared")
+                return
+            # validator for validating board existence
+            class BoardValidator(Validator):
+                def validate(self, document):
+                    text = document.text.strip()
+                    if text and text != "all":
+                        try:
+                            boards = shlex.split(text)
+                        except ValueError:
+                            # ValueError("No closing quotations.")
+                            boards = text.split(" ")
+                        for board in boards:
+                            if board not in all_boards:
+                                raise ValidationError(message="Board '{}' does not exist".format(board))
+            # completer
+            board_completer = WordCompleter(all_boards)
+            # prompt
+            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
+            answer = prompt("[?] Board (`all` to clear all boards): ", completer=board_completer, validator=BoardValidator(), complete_while_typing=True).strip()
+            if not answer:
+                print(Fore.RED + "[!] Operation aborted")
+                return
+            elif answer == "all":
+                # clear all boards
+                if not confirm("[!] Clear all boards ?"):
+                    print(Fore.RED + "[!] Operation Aborted")
+                    return
+            # do clear boards
+            with Storage() as s:
+                if answer == "all":
+                    s.clear_board()
+                else:
+                    boards = shlex.split(answer)
+                    for board in boards:
+                        s.clear_board(board=board)
+
+        @action
+        def do_edit(self, arg):
+            with Storage() as s:
+                all_ids = s.ids
+            if not all_ids:
+                print(Fore.RED + "[!] No item to be removed")
+                return
+            # completer
+            item_completer = WordCompleter([str(id) for id in all_ids])
+            # prompt
+            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
+            items = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
+            if not items:
+                print(Fore.RED + "[!] Operation aborted")
+                return
+            text = prompt("[?] New text: ").strip()
+            if not text:
+                print(Fore.RED + "[!] Operation aborted")
+                return
+            # do edit item
+            with Storage() as s:
+                ids = shlex.split(items)
+                for id in ids:
+                    s.modify_item(int(id), "text", text)
+
+        @action
+        def do_undo(self, arg):
+            with Storage() as s:
+                state = s._States.load(rm=False)
+                if state is False:
+                    print(Fore.RED + "[!] Already at oldest change")
+                    return
+                print(get_color("undo") + Style.BRIGHT + "Last Action:")
+                print("=>", get_color(state["action"]) + state["info"])
+                if not confirm("[!] Continue ?"):
+                    print(Fore.RED + "[!] Operation Aborted")
+                    return
+                s.load_state()
+
+        @action
+        def do_import(self, arg):
+            # validator for validating existence of file / directory of the path
+            class PathValidator(Validator):
+                def validate(self, document):
+                    text = document.text.strip()
+                    if text:
+                        path = os.path.abspath(text)
+                        if os.path.isdir(path):
+                            raise ValidationError(message="Path '{}' is a directory".format(path))
+                        if not os.path.isfile(path):
+                            raise ValidationError(message="File '{}' does not exist".format(path))
+            # prompt
+            answer = prompt("[?] File path: ", validator=PathValidator()).strip()
+            if not answer:
+                print(Fore.RED + "[!] Operation Aborted")
+                return
+            # do import
+            with Storage() as s:
+                s.import_(answer)
+
+        def do_quit(self, arg):
+            sys.exit(0)
+        
+        def default(self, line):
+            print(Style.BRIGHT + Fore.RED + "ERROR:", "Invalid command '{}'".format(line))
+            return line
+
+        def postcmd(self, stop, line):        
+            if line not in self.commands:
+                return
+            display_board(im=True)
+
+        def emptyline(self):
+            display_board(im=True)
 
 
 def main():
@@ -533,6 +534,7 @@ Examples:
   $ board clear -b "Todo List"
   $ board edit 1 "improve cli help message"
   $ board tag 1 "enhancement" -c GREEN
+  $ board tick 1
   $ board import ~/Documents/board.json
   $ board export ~/Documents/
 
