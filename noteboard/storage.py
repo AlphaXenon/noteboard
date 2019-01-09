@@ -1,5 +1,6 @@
 import shelve
 import pickle
+import gzip
 import json
 import os
 
@@ -37,6 +38,9 @@ class States:
     """
     This class is in charge of saving & loading historic states of Noteboard.
     For use in `Storage` class.
+
+    New in 1.0.4:
+        Implemented gzip compression to states.pkl (-> states.pkl.gz) in order to reduce the size of the pickle file.
     """
 
     def __init__(self):
@@ -50,7 +54,7 @@ class States:
             rm {bool} -- pop the last state if True else get data of the state only
         """
         try:
-            with open(STATES_PATH, "rb") as pkl:
+            with gzip.open(STATES_PATH, "rb") as pkl:
                 self.stacks = pickle.load(pkl)
         except FileNotFoundError:
             raise_error(NoteboardException("States file not found for loading"))
@@ -59,7 +63,7 @@ class States:
         if rm is True:
             state = self.stacks.pop()    # => [undo] get the last state and remove it
             # Update the pickle file
-            with open(STATES_PATH, "wb") as pkl:
+            with gzip.open(STATES_PATH, "wb") as pkl:
                 pickle.dump(self.stacks, pkl)
         else:
             state = self.stacks[-1]
@@ -77,16 +81,16 @@ class States:
         is_new = not os.path.isfile(STATES_PATH)
         # Create and initialise pickle file with an empty list
         if is_new:
-            with open(STATES_PATH, "wb+") as pkl:
+            with gzip.open(STATES_PATH, "wb+") as pkl:
                 pickle.dump([], pkl)
         # Dump state data
         # => read the current saved states
-        with open(STATES_PATH, "rb") as pkl:
+        with gzip.open(STATES_PATH, "rb") as pkl:
             self.stacks = pickle.load(pkl)
         # => dump state data
         state = {"info": info, "action": action, "data": data}
         self.stacks.append(state)
-        with open(STATES_PATH, "wb") as pkl:
+        with gzip.open(STATES_PATH, "wb") as pkl:
             pickle.dump(self.stacks, pkl)
 
 

@@ -303,7 +303,7 @@ def display_board(st=False, im=False):
             if item["star"] is True:
                 star = Fore.LIGHTYELLOW_EX + "⭑"
             # convert to from timestamp to human readable time format
-            time = datetime.datetime.fromtimestamp(item["time"]).strftime("%Y/%m/%d %H:%M:%S")
+            # time = datetime.datetime.fromtimestamp(item["time"]).strftime("%Y/%m/%d %H:%M:%S")
             # calculate days difference between two date object
             date = datetime.datetime.strptime(item["date"], "%a %d %b %Y")
             today = datetime.datetime.strptime(get_time()[0], "%a %d %b %Y")
@@ -313,7 +313,7 @@ def display_board(st=False, im=False):
             else:
                 day_text = Fore.LIGHTBLACK_EX + "{}d".format(days)
             if st is True:
-                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + "({})".format(time))
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + "({})".format(item["date"]))
             else:
                 p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["text"], tag_text, day_text)
     print()
@@ -341,9 +341,11 @@ if PPT:
     class InteractivePrompt(cmd.Cmd):
 
         class ItemValidator(Validator):
+
             def __init__(self, all_ids):
                 self.all_ids = all_ids
                 Validator.__init__(self)
+
             def validate(self, document):
                 text = document.text.strip()
                 if text:
@@ -361,7 +363,7 @@ if PPT:
         intro = "{0}[Interactive Mode]{1} Type help or ? to list all available commands.".format(Fore.LIGHTMAGENTA_EX, Fore.RESET)
         prompt = "{}@{}(noteboard){}>>${}".format(Fore.CYAN, Style.BRIGHT + Fore.YELLOW, Fore.RESET, Style.RESET_ALL) + " "
         commands = ["add", "remove", "clear", "edit", "undo", "import", "quit"]
-        
+
         def do_help(self, arg):
             print(Fore.LIGHTCYAN_EX + "Commands:   ", "    ".join(self.commands))
 
@@ -510,12 +512,12 @@ if PPT:
 
         def do_quit(self, arg):
             sys.exit(0)
-        
+
         def default(self, line):
             print(Style.BRIGHT + Fore.RED + "ERROR:", "Invalid command '{}'".format(line))
             return line
 
-        def postcmd(self, stop, line):        
+        def postcmd(self, stop, line):
             if line not in self.commands:
                 return
             display_board(im=True)

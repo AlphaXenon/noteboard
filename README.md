@@ -37,11 +37,12 @@
 * Manage notes & tasks in multiple boards 🗒
 * Run item as command inside terminal (subprocess) 💨
 * Import boards from external JSON files & Export boards as JSON files
-* Save & Load states
+* Save & Load historic states
 * Undo previous actions / changes
 * Interactive mode for dynamic operations
 * Autocomplete & Autosuggestions in interactive mode
 * Store data using the `shelve` standard library
+* `Gzip` compressed states `pickle` file 📚
 
 ## Installation
 
@@ -95,7 +96,7 @@ Optional Arguments:
 
 `board`
 
-* `-st/--show-time` : show boards with the added time of each items
+* `-st/--show-time` : show boards with the last modified time of each items
 * `-i/--interactive` : enter [interactive mode](#interactive-mode)
 
 ---
