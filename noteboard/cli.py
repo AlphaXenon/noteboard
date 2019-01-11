@@ -610,8 +610,8 @@ Examples:
     init(autoreset=True)
     if args.i:
         if PPT is False:
-            print(Style.BRIGHT + Fore.RED + "ERROR:", Fore.YELLOW + "Looks like you don't have 'prompt toolkit' library installed. Therefore, you will not be able to use interactive mode.")
-            print(Fore.GREEN + "You can install it with `pip3 install prompt_toolkit`.")
+            print(Style.BRIGHT + Fore.RED + "ERROR:", Fore.YELLOW + "Looks like you don't have 'prompt toolkit' installed. Therefore, you will not be able to use interactive mode.")
+            print("You can install it with `pip3 install prompt_toolkit`.")
         else:
             try:
                 InteractivePrompt().cmdloop()

@@ -1,5 +1,4 @@
 import logging
-import os
 
 from . import LOG_PATH
 

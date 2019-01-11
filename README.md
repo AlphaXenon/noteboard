@@ -33,16 +33,24 @@
 
 * Fancy interface ✨
 * Simple & Easy to use 
-* Fast as lightning ⚡️
+* **Fast as lightning** ⚡️
+* **Efficient and Effective** 💪🏻
 * Manage notes & tasks in multiple boards 🗒
-* Run item as command inside terminal (subprocess) 💨
+* **Run item as command inside terminal (subprocess)** 💨
 * Import boards from external JSON files & Export boards as JSON files
-* Save & Load historic states
-* Undo previous actions / changes
-* Interactive mode for dynamic operations
-* Autocomplete & Autosuggestions in interactive mode
-* Store data using the `shelve` standard library
-* `Gzip` compressed states `pickle` file 📚
+* **Save & Load historic states**
+* **Undo multiple actions / changes**
+* **Interactive mode for dynamic operations**
+* **Autocomplete & Autosuggestions in interactive mode**
+* **`Gzip` compressed storage** 📚
+
+## How the storage works
+
+The main storage is powered by `shelve`, a Python standard library, which provides a lightweight & persistent file-based database system.
+Whereas the "buffer" (the one which allows you to undo previous actions), is powered by a `pickle` object.
+
+What makes `noteboard` special is that, the storage is compressed to `gzip` when it is not being accessed.
+This greatly reduces size of the file by more than 50%. 
 
 ## Installation
 

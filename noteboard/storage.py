@@ -1,10 +1,11 @@
 import shelve
 import pickle
 import gzip
+import shutil
 import json
 import os
 
-from . import DIR_PATH, STATES_PATH, STORAGE_PATH
+from . import DIR_PATH, STATES_PATH, STORAGE_PATH, STORAGE_GZ_PATH
 from .logger import setup_logger
 from .utils import raise_error, get_time
 
@@ -45,13 +46,14 @@ class States:
 
     def __init__(self):
         self.stacks = []
+        self.logger = setup_logger()
     
     def load(self, rm=True):
         """
-        Load the very last state (info & data) and remove it from teh stack.
+        Load the very last state (info & data) and pop it from the stack.
 
         Arguments:
-            rm {bool} -- pop the last state if True else get data of the state only
+            rm {bool} -- pop the last state if True, otherwise get data of the state only
         """
         try:
             with gzip.open(STATES_PATH, "rb") as pkl:
@@ -62,6 +64,7 @@ class States:
             return False    # No more undos
         if rm is True:
             state = self.stacks.pop()    # => [undo] get the last state and remove it
+            self.logger.debug("Load state: {}".format(state))
             # Update the pickle file
             with gzip.open(STATES_PATH, "wb") as pkl:
                 pickle.dump(self.stacks, pkl)
@@ -89,6 +92,7 @@ class States:
             self.stacks = pickle.load(pkl)
         # => dump state data
         state = {"info": info, "action": action, "data": data}
+        self.logger.debug("Dump state: {}".format(state))
         self.stacks.append(state)
         with gzip.open(STATES_PATH, "wb") as pkl:
             pickle.dump(self.stacks, pkl)
@@ -104,35 +108,41 @@ class Storage:
         self.logger = setup_logger()
 
     def __enter__(self):
-        self.logger.info("--> OPEN <--")
         self.open()
         return self
 
     def __exit__(self, *args, **kwargs):
         self.close()
-        self.logger.info("--> CLOSE <--")
         return False
 
     def open(self):
         # Open shelf
-        self.logger.debug("Opening shelf...")
         if self._shelf is not None:
             raise_error(NoteboardException("Shelf object has already been opened"))
         if not os.path.isdir(DIR_PATH):
             self.logger.debug("Making directory {} ...".format(DIR_PATH))
             os.mkdir(DIR_PATH)
+        if os.path.isfile(STORAGE_GZ_PATH):
+            # decompress compressed storage.gz to a storage file
+            with gzip.open(STORAGE_GZ_PATH, "rb") as f_in:
+                with open(STORAGE_PATH, "wb") as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+            os.remove(STORAGE_GZ_PATH)
         self._shelf = shelve.open(STORAGE_PATH, "c", writeback=True)
 
     def close(self):
-        self.logger.debug("Closing shelf object...")
         if self._shelf is None:
             raise_error(NoteboardException("No opened shelf object to be closed"))
         self._shelf.close()
+        # compress storage to storage.gz
+        with gzip.open(STORAGE_GZ_PATH, "wb") as f_out:
+            with open(STORAGE_PATH, "rb") as f_in:
+                shutil.copyfileobj(f_in, f_out)
+        os.remove(STORAGE_PATH)
 
     @property
     def shelf(self):
         """Use this property to access the shelf object for dealing with data."""
-        self.logger.debug("Shelf is being accessed")
         if self._shelf is None:
             raise_error(NoteboardException("No opened shelf object to be accessed"))
         return self._shelf
@@ -306,8 +316,9 @@ class Storage:
                     self.logger.debug("Modified Item from {} to {}".format(json.dumps(old), json.dumps(item)))
                     return old
         raise_error(ItemNotFoundError(id))
-    
-    def _validate_json(self, data):
+
+    @staticmethod
+    def _validate_json(data):
         keys = ["id", "text", "time", "date", "tick", "mark", "star", "tag"]
         for board in data:
             if str(board) == "":
