@@ -7,7 +7,6 @@ import shlex
 import traceback
 from colorama import init, deinit, Fore, Back, Style
 
-from . import DIR_PATH
 from .__version__ import __version__
 from .storage import Storage, NoteboardException
 from .utils import get_time

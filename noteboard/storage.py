@@ -379,7 +379,7 @@ class Storage:
         dest = os.path.abspath(dest)
         data = dict(self.shelf)
         with open(dest, "w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=4, sort_keys=True)
         return dest
     
     def _save_state(self, info, action):
