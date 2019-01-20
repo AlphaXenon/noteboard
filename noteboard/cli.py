@@ -279,38 +279,45 @@ def display_board(st=False, im=False):
             continue
         print()
         p("\033[4m" + Style.BRIGHT + board, Fore.LIGHTBLACK_EX + "[{}]".format(len(shelf[board])))
+
         # Print Item
         for item in shelf[board]:
+
             # Mark, Text color, Tag
             mark = Fore.BLUE + "●"
             text_color = ""
             tag_text = ""
+
             # tick
             if item["tick"] is True:
                 mark = Fore.GREEN + "✔"
                 text_color = Fore.LIGHTBLACK_EX
+
             # mark
             if item["mark"] is True:
                 if item["tick"] is False:
                     mark = Fore.LIGHTRED_EX + "!"
                 text_color = Style.BRIGHT + Fore.RED
+
             # tag
             if item["tag"]:
                 tag_text = " " + item["tag"] + " "
+
             # Star
             star = " "
             if item["star"] is True:
                 star = Fore.LIGHTYELLOW_EX + "⭑"
-            # convert to from timestamp to human readable time format
-            # time = datetime.datetime.fromtimestamp(item["time"]).strftime("%Y/%m/%d %H:%M:%S")
-            # calculate days difference between two date object
-            date = datetime.datetime.strptime(item["date"], "%a %d %b %Y")
-            today = datetime.datetime.strptime(get_time()[0], "%a %d %b %Y")
-            days = today.day - date.day
+
+            # calculate days difference between two date object by timestamps
+            time = datetime.datetime.fromtimestamp(item["time"])
+            time_now = datetime.datetime.fromtimestamp(get_time()[1])
+            days = (time_now - time).days
             if days <= 0:
                 day_text = ""
             else:
                 day_text = Fore.LIGHTBLACK_EX + "{}d".format(days)
+
+            # print text all together
             if st is True:
                 p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + "({})".format(item["date"]))
             else:
@@ -322,6 +329,7 @@ def display_board(st=False, im=False):
 
 
 def action(func):
+    """A decorator functionn to catch exceptions of an action."""
     def inner(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
@@ -537,7 +545,7 @@ Examples:
   $ board tag 1 "enhancement" -c GREEN
   $ board tick 1
   $ board import ~/Documents/board.json
-  $ board export ~/Documents/
+  $ board export ~/Documents/save.json
 
 {0}Made with {1}\u2764{2} by AlphaXenon{3}
 """.format(Style.BRIGHT, Fore.RED, Fore.RESET, Style.RESET_ALL)

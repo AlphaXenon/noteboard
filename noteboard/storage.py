@@ -11,11 +11,11 @@ from .utils import raise_error, get_time
 
 
 class NoteboardException(Exception):
-    """Base Exception Class of Noteboard"""
+    """Base Exception Class of Noteboard."""
 
 
 class ItemNotFoundError(NoteboardException):
-    """Raised when no item with the specified id found"""
+    """Raised when no item with the specified id found."""
 
     def __init__(self, id):
         self.id = id
@@ -25,7 +25,7 @@ class ItemNotFoundError(NoteboardException):
 
 
 class BoardNotFoundError(NoteboardException):
-    """Raised when no board with specified name found"""
+    """Raised when no board with specified name found."""
 
     def __init__(self, name):
         self.name = name
@@ -38,7 +38,7 @@ class States:
 
     """
     This class is in charge of saving & loading historic states of Noteboard.
-    For use in `Storage` class.
+    Called in `Storage` class.
 
     New in 1.0.4:
         Implemented gzip compression to states.pkl (-> states.pkl.gz) in order to reduce the size of the pickle file.
@@ -118,7 +118,7 @@ class Storage:
     def open(self):
         # Open shelf
         if self._shelf is not None:
-            raise_error(NoteboardException("Shelf object has already been opened"))
+            raise_error(NoteboardException("Shelf object has already been opened."))
         if not os.path.isdir(DIR_PATH):
             self.logger.debug("Making directory {} ...".format(DIR_PATH))
             os.mkdir(DIR_PATH)
@@ -132,7 +132,7 @@ class Storage:
 
     def close(self):
         if self._shelf is None:
-            raise_error(NoteboardException("No opened shelf object to be closed"))
+            raise_error(NoteboardException("No opened shelf object to be closed."))
         self._shelf.close()
         # compress storage to storage.gz
         with gzip.open(STORAGE_GZ_PATH, "wb") as f_out:
@@ -144,17 +144,17 @@ class Storage:
     def shelf(self):
         """Use this property to access the shelf object for dealing with data."""
         if self._shelf is None:
-            raise_error(NoteboardException("No opened shelf object to be accessed"))
+            raise_error(NoteboardException("No opened shelf object to be accessed."))
         return self._shelf
 
     @property
     def boards(self):
-        """Get all existing board titles"""
+        """Get all existing board titles."""
         return list(self.shelf.keys())
 
     @property
     def ids(self):
-        """Get all existing item ids"""
+        """Get all existing item ids."""
         results = []
         for board in self.shelf:
             for item in self.shelf[board]:
@@ -183,9 +183,9 @@ class Storage:
 
     def _add_board(self, board):
         if board.strip() == "":
-            raise ValueError("Board title must not be empty")
+            raise ValueError("Board title must not be empty.")
         if board in self.shelf.keys():
-            raise KeyError("Board already exists")
+            raise KeyError("Board already exists.")
         self.logger.debug("Added Board: '{}'".format(board))
         self.shelf[board] = []  # register board by adding an empty list
 
@@ -368,7 +368,7 @@ class Storage:
     def export(self, dest="./board.json"):
         """[Action]
         * Can be Undone: No
-        Exoport the current shelf as a JSON file to :dest:.
+        Exoport the current shelf as a JSON file to `dest`.
 
         Arguments:
             dest {str} -- path of the destination
