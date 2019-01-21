@@ -26,6 +26,7 @@
   - [Import Boards from External JSON File](#import-boards-from-external-json-file)
   - [Export Boards Data as JSON File](#export-boards-data-as-json-file)
 - [Interactive Mode](#interactive-mode)
+- [Configurations](#configurations)
 - [Cautions](#cautions)
 - [Credit](#credit)
 - [License](#license)
@@ -233,6 +234,8 @@ The exported JSON file is named `board.json`.
 
 ## Interactive Mode
 
+**➤ Made with [python-prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit)**
+
 Use `board -i/--interactive` to enter interactive mode.
 
 **Commands:**
@@ -249,6 +252,20 @@ Enter an empty line to view boards. Enter an empty line in prompt to abort opera
 
 *NOTE: You can use quotations (`'` or `"`) to specify multiple board names or board names that contain spaces and item ids.*
 
+## Configurations
+
+**Path:** *~/.config/noteboard/config.json*
+
+### Default Configurations
+```json
+{
+    "StoragePath": "~/.noteboard/",
+    "DefaultBoardName": "Board"
+}
+```
+* `StoragePath` : path to the custom storage path (where the data and log file are stored)
+* `DefaultBoardName` : default board name, is used when no board is specified when adding item with `add` action
+
 ## Cautions
 
 Some terminal emulators may not support dimmed (`Style.DIM`) & underlined (`\033[4m`) text.
@@ -263,7 +280,7 @@ The program also uses symbols such as `⭑` and `✔` which also may not be disp
 
 ## Contributing
 
-Feel free to open issues for bug reports and feature requests ! (If you are reporting bugs, please include the log file `~/.noteboard/noteboard.log`).
+Feel free to open issues for bug reports and feature requests ! (If you are reporting bugs, please include the log file `<StoragePath>/noteboard.log`).
 
 ## Credit
 
