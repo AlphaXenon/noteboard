@@ -240,7 +240,7 @@ def move(args):
         print()
         for item in items:
             s.move_item(item, board)
-            p(color + "[&] Moved item", Style.BRIGHT + str(item), "to", Style.BRIGHT + board)
+            p(color + "[&] Moved item", Style.BRIGHT + str(item), color + "to", Style.BRIGHT + board)
     print()
 
 
@@ -255,7 +255,7 @@ def rename(args):
         print()
         s.get_board(board)  # try to get -> to test existence of the board
         s.shelf[new] = s.shelf.pop(board)
-        p(color + "[~] Renamed", Style.BRIGHT + board, "to", Style.BRIGHT + new)
+        p(color + "[~] Renamed", Style.BRIGHT + board, color + "to", Style.BRIGHT + new)
     print()
 
 
