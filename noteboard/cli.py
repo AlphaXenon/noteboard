@@ -5,8 +5,10 @@ import cmd
 import datetime
 import shlex
 import traceback
+import logging
 from colorama import init, deinit, Fore, Back, Style
 
+from . import DEFAULT_BOARD
 from .__version__ import __version__
 from .storage import Storage, NoteboardException
 from .utils import get_time
@@ -108,7 +110,7 @@ def add(args):
     with Storage() as s:
         i = s.add_item(board, item)
     print()
-    p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or "Board"))
+    p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or DEFAULT_BOARD))
     print_total()
     print()
 
@@ -429,12 +431,12 @@ if PPT:
             item_completer = WordCompleter([str(id) for id in all_ids])
             print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
             answer = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
-            if not answer:
+            ids = shlex.split(answer)
+            if not ids:
                 print(Fore.RED + "[!] Operation aborted")
                 return
             # do remove item
             with Storage() as s:
-                ids = shlex.split(answer)
                 for id in ids:
                     s.remove_item(int(id))
 
@@ -492,7 +494,8 @@ if PPT:
             # prompt
             print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
             items = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
-            if not items:
+            ids = shlex.split(items)
+            if not ids:
                 print(Fore.RED + "[!] Operation aborted")
                 return
             text = prompt("[?] New text: ").strip()
@@ -501,7 +504,6 @@ if PPT:
                 return
             # do edit item
             with Storage() as s:
-                ids = shlex.split(items)
                 for id in ids:
                     s.modify_item(int(id), "text", text)
 
@@ -518,7 +520,8 @@ if PPT:
             # prompt
             print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
             items = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
-            if not items:
+            ids = shlex.split(items)
+            if not ids:
                 print(Fore.RED + "[!] Operation aborted")
                 return
             # completer
@@ -530,7 +533,6 @@ if PPT:
                 return
             # do move item
             with Storage() as s:
-                ids = shlex.split(items)
                 for id in ids:
                     s.move_item(int(id), board)
 
@@ -617,7 +619,7 @@ Examples:
 
     add_parser = subparsers.add_parser("add", help=get_color("add") + "[+] Add an item to a board" + Fore.RESET)
     add_parser.add_argument("item", help="the item you want to add", type=str, metavar="<item text>")
-    add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format("Board"), type=str, metavar="<name>")
+    add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format(DEFAULT_BOARD), type=str, metavar="<name>")
     add_parser.set_defaults(func=add)
 
     remove_parser = subparsers.add_parser("remove", help=get_color("remove") + "[-] Remove items" + Fore.RESET)
@@ -693,6 +695,7 @@ Examples:
             except NoteboardException as e:
                 print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
             except Exception:
+                logging.getLogger("noteboard").error("Uncaught Exception:", exc_info=True)
                 exc = sys.exc_info()
                 exc = traceback.format_exception(*exc)
                 print(Style.BRIGHT + Fore.RED + "Uncaught Exception:", "".join(exc))

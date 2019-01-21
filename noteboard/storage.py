@@ -5,7 +5,7 @@ import shutil
 import json
 import os
 
-from . import DIR_PATH, STATES_PATH, STORAGE_PATH, STORAGE_GZ_PATH
+from . import DIR_PATH, STATES_PATH, STORAGE_PATH, STORAGE_GZ_PATH, DEFAULT_BOARD
 from .logger import setup_logger
 from .utils import raise_error, get_time
 
@@ -241,7 +241,7 @@ class Storage:
         if ids:
             current_id = ids[-1] + 1
         # board name
-        board = board or "Board"
+        board = board or DEFAULT_BOARD
         # save state before doing modification
         self._save_state("Add item {} to {}".format(current_id, board), "add")
         # add
