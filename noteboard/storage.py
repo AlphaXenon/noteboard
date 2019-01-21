@@ -119,20 +119,33 @@ class Storage:
         # Open shelf
         if self._shelf is not None:
             raise_error(NoteboardException("Shelf object has already been opened."))
+
         if not os.path.isdir(DIR_PATH):
             self.logger.debug("Making directory {} ...".format(DIR_PATH))
             os.mkdir(DIR_PATH)
+
         if os.path.isfile(STORAGE_GZ_PATH):
             # decompress compressed storage.gz to a storage file
             with gzip.open(STORAGE_GZ_PATH, "rb") as f_in:
                 with open(STORAGE_PATH, "wb") as f_out:
                     shutil.copyfileobj(f_in, f_out)
             os.remove(STORAGE_GZ_PATH)
+
         self._shelf = shelve.open(STORAGE_PATH, "c", writeback=True)
 
     def close(self):
         if self._shelf is None:
             raise_error(NoteboardException("No opened shelf object to be closed."))
+
+        # Cleanup
+        for board in self.shelf:
+            # remove empty boards
+            if not self.shelf[board]:
+                self.shelf.pop(board)
+                continue
+            # always sort items on the boards before closing
+            self.shelf[board] = list(sorted(self.shelf[board], key=lambda x: x["id"]))
+
         self._shelf.close()
         # compress storage to storage.gz
         with gzip.open(STORAGE_GZ_PATH, "wb") as f_out:
@@ -142,7 +155,7 @@ class Storage:
 
     @property
     def shelf(self):
-        """Use this property to access the shelf object for dealing with data."""
+        """Use this property to access the shelf object from the outside."""
         if self._shelf is None:
             raise_error(NoteboardException("No opened shelf object to be accessed."))
         return self._shelf
@@ -174,6 +187,13 @@ class Storage:
                     return item
         raise_error(ItemNotFoundError(id))
 
+    def get_board(self, name):
+        """Get the board with the given name. BoardNotFound will be raised if nothing found."""
+        for board in self.shelf:
+            if board == name:
+                return self.shelf[name]
+        raise_error(BoardNotFoundError(name))
+
     def get_all_items(self):
         items = []
         for board in self.shelf:
@@ -192,14 +212,14 @@ class Storage:
     def _add_item(self, id, board, text):
         date, timestamp = get_time()
         payload = {
-            "id": id,
-            "text": text,
-            "time": timestamp,
-            "date": date,
-            "tick": False,
-            "mark": False,
-            "star": False,
-            "tag": ""
+            "id": id,           # int
+            "text": text,       # str
+            "time": timestamp,  # int
+            "date": date,       # str
+            "tick": False,      # bool
+            "mark": False,      # bool
+            "star": False,      # bool
+            "tag": ""           # str
         }
         self.shelf[board].append(payload)
         self.logger.debug("Added Item: {} to Board: '{}'".format(json.dumps(payload), board))
@@ -215,17 +235,16 @@ class Storage:
         Returns:
             dict -- data of the added item
         """
-        # Set ID
         current_id = 1
         # get all existing ids
         ids = self.ids
         if ids:
             current_id = ids[-1] + 1
-        # Set Board Name
+        # board name
         board = board or "Board"
-        # Save
+        # save state before doing modification
         self._save_state("Add item {} to {}".format(current_id, board), "add")
-        # Add
+        # add
         if board not in self.shelf:
             # create board
             self._add_board(board)
@@ -293,7 +312,7 @@ class Storage:
         If the item does not have the key, one will be created.
 
         Arguments:
-            id {int} -- id of the item you wanted to be modify
+            id {int} -- id of the item you want to modify
             key {str} -- one of [id, text, time, tick, star, mark, tag]
             value -- new value to replace the old value
         
@@ -315,6 +334,33 @@ class Storage:
                     item[key] = value
                     self.logger.debug("Modified Item from {} to {}".format(json.dumps(old), json.dumps(item)))
                     return old
+        raise_error(ItemNotFoundError(id))
+
+    def move_item(self, id, board):
+        """[Action]
+        * Can be undone: No
+        Move the whole item to the destination board, given the id of the item and the name of the board.
+
+        If the destination board does not exist, one will be created.
+
+        Arguments:
+            id {int} -- id of the item you want to move
+            board {str} -- name of the destination board
+
+        Returns:
+            item {dict} -- the item that is moved
+        """
+        for b in self.shelf:
+            for item in self.shelf[b]:
+                if item["id"] == id:
+                    if not self.shelf.get(board):
+                        # register board with a empty list if board not found
+                        self.shelf[board] = []
+                    # append to dest board `board`
+                    self.shelf[board].append(item)
+                    # remove from the current board `b`
+                    self.shelf[b].remove(item)
+                    return item
         raise_error(ItemNotFoundError(id))
 
     @staticmethod

@@ -32,6 +32,7 @@ COLORS = {
     "star": Fore.YELLOW,
     "tag": Fore.LIGHTBLUE_EX,
     "edit": Fore.LIGHTCYAN_EX,
+    "move": Fore.LIGHTCYAN_EX,
     "undo": Fore.LIGHTCYAN_EX,
     "import": "",
     "export": "",
@@ -227,6 +228,18 @@ def tag(args):
     print()
 
 
+def move(args):
+    color = get_color("move")
+    items = args.item
+    board = args.board
+    with Storage() as s:
+        print()
+        for item in items:
+            s.move_item(item, board)
+            p(color + "[#] Moved item", Style.BRIGHT + str(item), "to", Style.BRIGHT + board)
+    print()
+
+
 def undo(args):
     color = get_color("undo")
     with Storage() as s:
@@ -335,23 +348,26 @@ def display_board(st=False, im=False):
     print()
 
 
-def action(func):
-    """A decorator functionn to catch exceptions of an action."""
-    def inner(*args, **kwargs):
-        try:
-            result = func(*args, **kwargs)
-        except NoteboardException as e:
-            print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
-        except Exception:
-            exc = sys.exc_info()
-            exc = traceback.format_exception(*exc)
-            print(Style.BRIGHT + Fore.RED + "Uncaught Exception:", "".join(exc))
-        else:
-            return result
-    return inner
-
-
 if PPT:
+    # Define Interactive Mode related objects and functions here if prompt_toolkit is installed
+
+    def action(func):
+        """A decorator functionn to catch exceptions of an action."""
+
+        def inner(*args, **kwargs):
+            try:
+                result = func(*args, **kwargs)
+            except NoteboardException as e:
+                print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
+            except Exception:
+                exc = sys.exc_info()
+                exc = traceback.format_exception(*exc)
+                print(Style.BRIGHT + Fore.RED + "Uncaught Exception:", "".join(exc))
+            else:
+                return result
+
+        return inner
+
     class InteractivePrompt(cmd.Cmd):
 
         class ItemValidator(Validator):
@@ -376,7 +392,7 @@ if PPT:
 
         intro = "{0}[Interactive Mode]{1} Type help or ? to list all available commands.".format(Fore.LIGHTMAGENTA_EX, Fore.RESET)
         prompt = "{}@{}(noteboard){}>>${}".format(Fore.CYAN, Style.BRIGHT + Fore.YELLOW, Fore.RESET, Style.RESET_ALL) + " "
-        commands = ["add", "remove", "clear", "edit", "undo", "import", "quit"]
+        commands = ["add", "remove", "clear", "edit", "move", "undo", "import", "quit"]
 
         def do_help(self, arg):
             print(Fore.LIGHTCYAN_EX + "Commands:   ", "    ".join(self.commands))
@@ -490,6 +506,35 @@ if PPT:
                     s.modify_item(int(id), "text", text)
 
         @action
+        def do_move(self, arg):
+            with Storage() as s:
+                all_ids = s.ids
+                all_boards = s.boards
+            if not all_ids:
+                print(Fore.RED + "[!] No item to be moved")
+                return
+            # completer
+            item_completer = WordCompleter([str(id) for id in all_ids])
+            # prompt
+            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
+            items = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
+            if not items:
+                print(Fore.RED + "[!] Operation aborted")
+                return
+            # completer
+            board_completer = WordCompleter(all_boards)
+            # prompt
+            board = prompt("[?] Destination board: ", completer=board_completer, complete_while_typing=True).strip()
+            if not board:
+                print(Fore.RED + "[!] Operation aborted")
+                return
+            # do move item
+            with Storage() as s:
+                ids = shlex.split(items)
+                for id in ids:
+                    s.move_item(int(id), board)
+
+        @action
         def do_undo(self, arg):
             with Storage() as s:
                 state = s._States.load(rm=False)
@@ -547,10 +592,11 @@ def main():
 Examples:
   $ board add "improve cli" -b "Todo List"
   $ board remove 2 4
-  $ board clear "Todo List"
-  $ board edit 1 "improve cli help message"
+  $ board clear "Todo List" "Coding"
+  $ board edit 1 "improve cli"
   $ board tag 1 6 -t "enhancement" -c GREEN
   $ board tick 1 5 9
+  $ board move 2 3 "Destination"
   $ board import ~/Documents/board.json
   $ board export ~/Documents/save.json
 
@@ -608,6 +654,11 @@ Examples:
     run_parser = subparsers.add_parser("run", help=get_color("run") + "[>] Run an item as command" + Fore.RESET)
     run_parser.add_argument("item", help="id of the item you want to run", type=int, metavar="<item id>")
     run_parser.set_defaults(func=run)
+
+    move_parser = subparsers.add_parser("move", help=get_color("move") + "[&] Move an item to another board" + Fore.RESET)
+    move_parser.add_argument("item", help="id of the item you want to move", type=int, metavar="<item id>", nargs="+")
+    move_parser.add_argument("board", help="name of the destination board", type=str, metavar="<name>")
+    move_parser.set_defaults(func=move)
 
     undo_parser = subparsers.add_parser("undo", help=get_color("undo") + "[^] Undo the last action" + Fore.RESET)
     undo_parser.set_defaults(func=undo)
