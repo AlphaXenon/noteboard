@@ -122,6 +122,8 @@ Options:
 
 If no board `name` is specified, the item will be added to the default board.
 
+If board does not exist, one will be created.
+
 ---
 
 ### Remove Item
@@ -168,6 +170,8 @@ If no `text` is given, existing tag of this item will be removed.
 ### Move Item
 
 `board move <item id> [<item id> ...] <name>`
+
+If board does not exist, one will be created.
 
 ---
 
