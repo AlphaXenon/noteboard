@@ -21,6 +21,7 @@
   - [Edit Item](#edit-item)
   - [Tag Item](#tag-item)
   - [Move Item](#move-item)
+  - [Rename Board](#rename-board)
   - [Run Item as Command](#run-item-as-command)
   - [Undo Previous Actions](#undo-previous-actions)
   - [Import Boards from External JSON File](#import-boards-from-external-json-file)
@@ -90,6 +91,7 @@ Actions:
     tag                 [#] Tag an item with text
     run                 [>] Run an item as command
     move                [&] Move an item to another board
+    rename              [~] Rename the name of the board
     undo                [^] Undo the last action
     import              [I] Import and load boards from JSON file
     export              [E] Export boards as a JSON file
@@ -166,6 +168,12 @@ If no `text` is given, existing tag of this item will be removed.
 ### Move Item
 
 `board move <item id> [<item id> ...] <name>`
+
+---
+
+### Rename Board
+
+`board rename <name> <new name>`
 
 ---
 

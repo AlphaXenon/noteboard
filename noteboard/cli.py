@@ -36,6 +36,7 @@ COLORS = {
     "tag": Fore.LIGHTBLUE_EX,
     "edit": Fore.LIGHTCYAN_EX,
     "move": Fore.LIGHTCYAN_EX,
+    "rename": Fore.LIGHTCYAN_EX,
     "undo": Fore.LIGHTCYAN_EX,
     "import": "",
     "export": "",
