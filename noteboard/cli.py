@@ -114,68 +114,74 @@ def add(args):
 
 def remove(args):
     color = get_color("remove")
-    item = args.item
+    items = args.item
     with Storage() as s:
-        i, board = s.remove_item(item)
-    print()
-    p(color + "[-] Removed item", Style.BRIGHT + str(i["id"]), color + "on", Style.BRIGHT + board)
+        print()
+        for item in items:
+            i, board = s.remove_item(item)
+            p(color + "[-] Removed item", Style.BRIGHT + str(i["id"]), color + "on", Style.BRIGHT + board)
     print_total()
     print()
 
 
 def clear(args):
     color = get_color("clear")
-    board = args.board
+    boards = args.board
     with Storage() as s:
-        amt = s.clear_board(board)
-    print()
-    if board:
-        p(color + "[x] Cleared", Style.DIM + str(amt) + Style.RESET_ALL, color + "items on", Style.BRIGHT + board)
-    else:
-        p(color + "[x] Cleared", Style.DIM + str(amt) + Style.RESET_ALL, color + "items on all boards")
+        print()
+        if boards:
+            for board in boards:
+                amt = s.clear_board(board)
+                p(color + "[x] Cleared", Style.DIM + str(amt) + Style.RESET_ALL, color + "items on", Style.BRIGHT + board)
+        else:
+            amt = s.clear_board(None)
+            p(color + "[x] Cleared", Style.DIM + str(amt) + Style.RESET_ALL, color + "items on all boards")
     print_total()
     print()
 
 
 def tick(args):
     color = get_color("tick")
-    item = args.item
+    items = args.item
     with Storage() as s:
-        state = not s.get_item(item)["tick"]
-        i = s.modify_item(item, "tick", state)
-    print()
-    if state is True:
-        p(color + "[✓] Ticked item", Style.BRIGHT + str(i["id"]), color)
-    else:
-        p(color + "[✓] Unticked item", Style.BRIGHT + str(i["id"]), color)
+        print()
+        for item in items:
+            state = not s.get_item(item)["tick"]
+            i = s.modify_item(item, "tick", state)
+            if state is True:
+                p(color + "[✓] Ticked item", Style.BRIGHT + str(i["id"]), color)
+            else:
+                p(color + "[✓] Unticked item", Style.BRIGHT + str(i["id"]), color)
     print()
 
 
 def mark(args):
     color = get_color("mark")
-    item = args.item
+    items = args.item
     with Storage() as s:
-        state = not s.get_item(item)["mark"]
-        i = s.modify_item(item, "mark", state)
-    print()
-    if state is True:
-        p(color + "[*] Marked item", Style.BRIGHT + str(i["id"]))
-    else:
-        p(color + "[*] Unmarked item", Style.BRIGHT + str(i["id"]))
+        print()
+        for item in items:
+            state = not s.get_item(item)["mark"]
+            i = s.modify_item(item, "mark", state)
+            if state is True:
+                p(color + "[*] Marked item", Style.BRIGHT + str(i["id"]))
+            else:
+                p(color + "[*] Unmarked item", Style.BRIGHT + str(i["id"]))
     print()
 
 
 def star(args):
     color = get_color("star")
-    item = args.item
+    items = args.item
     with Storage() as s:
-        state = not s.get_item(item)["star"]
-        i = s.modify_item(item, "star", state)
-    print()
-    if state is True:
-        p(color + "[⭑] Starred item", Style.BRIGHT + str(i["id"]))
-    else:
-        p(color + "[⭑] Unstarred item", Style.BRIGHT + str(i["id"]))
+        print()
+        for item in items:
+            state = not s.get_item(item)["star"]
+            i = s.modify_item(item, "star", state)
+            if state is True:
+                p(color + "[⭑] Starred item", Style.BRIGHT + str(i["id"]))
+            else:
+                p(color + "[⭑] Unstarred item", Style.BRIGHT + str(i["id"]))
     print()
 
 
@@ -195,28 +201,29 @@ def edit(args):
 
 def tag(args):
     color = get_color("tag")
-    item = args.item
+    items = args.item
     text = args.text or ""
-    c = args.color
+    c = args.color or "BLUE"
     if len(text) > 10:
         print(Fore.RED + "[!] Tag text length should not be longer than 10 characters")
         return
-    if text != "":
+    if text.strip() != "":
         try:
             tag_color = eval("Back." + c.upper())
         except AttributeError:
             print(Fore.RED + "[!] 'colorama.AnsiBack' object has no attribute '{}'".format(c.upper()))
             return
-        tag_text = tag_color + Style.DIM + "#" + Style.RESET_ALL + tag_color + text + " " + Back.RESET
+        tag_text = tag_color + Style.DIM + "#" + Style.RESET_ALL + tag_color + text.strip().replace(" ", "-") + " " + Back.RESET
     else:
         tag_text = ""
     with Storage() as s:
-        i = s.modify_item(item, "tag", tag_text)
-    print()
-    if text != "":
-        p(color + "[#] Tagged item", Style.BRIGHT + str(i["id"]), color + "with", tag_text)
-    else:
-        p(color + "[#] Untagged item", Style.BRIGHT + str(i["id"]))
+        print()
+        for item in items:
+            i = s.modify_item(item, "tag", tag_text)
+            if text != "":
+                p(color + "[#] Tagged item", Style.BRIGHT + str(i["id"]), color + "with", tag_text)
+            else:
+                p(color + "[#] Untagged item", Style.BRIGHT + str(i["id"]))
     print()
 
 
@@ -539,11 +546,11 @@ def main():
 """
 Examples:
   $ board add "improve cli" -b "Todo List"
-  $ board remove 1
-  $ board clear -b "Todo List"
+  $ board remove 2 4
+  $ board clear "Todo List"
   $ board edit 1 "improve cli help message"
-  $ board tag 1 "enhancement" -c GREEN
-  $ board tick 1
+  $ board tag 1 6 -t "enhancement" -c GREEN
+  $ board tick 1 5 9
   $ board import ~/Documents/board.json
   $ board export ~/Documents/save.json
 
@@ -567,24 +574,24 @@ Examples:
     add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format("Board"), type=str, metavar="<name>")
     add_parser.set_defaults(func=add)
 
-    remove_parser = subparsers.add_parser("remove", help=get_color("remove") + "[-] Remove an item" + Fore.RESET)
-    remove_parser.add_argument("item", help="id of the item you want to remove", type=int, metavar="<item id>")
+    remove_parser = subparsers.add_parser("remove", help=get_color("remove") + "[-] Remove items" + Fore.RESET)
+    remove_parser.add_argument("item", help="id of the item you want to remove", type=int, metavar="<item id>", nargs="+")
     remove_parser.set_defaults(func=remove)
 
     clear_parser = subparsers.add_parser("clear", help=get_color("clear") + "[x] Clear all items on a/all boards" + Fore.RESET)
-    clear_parser.add_argument("-b", "--board", help="clear this specific board only", type=str, metavar="<name>")
+    clear_parser.add_argument("board", help="clear this specific board", type=str, metavar="<name>", nargs="*")
     clear_parser.set_defaults(func=clear)
 
     tick_parser = subparsers.add_parser("tick", help=get_color("tick") + "[✓] Tick/Untick an item" + Fore.RESET)
-    tick_parser.add_argument("item", help="id of the item you want to tick/untick", type=int, metavar="<item id>")
+    tick_parser.add_argument("item", help="id of the item you want to tick/untick", type=int, metavar="<item id>", nargs="+")
     tick_parser.set_defaults(func=tick)
 
     mark_parser = subparsers.add_parser("mark", help=get_color("mark") + "[*] Mark/Unmark an item" + Fore.RESET)
-    mark_parser.add_argument("item", help="id of the item you want to mark/unmark", type=int, metavar="<item id>")
+    mark_parser.add_argument("item", help="id of the item you want to mark/unmark", type=int, metavar="<item id>", nargs="+")
     mark_parser.set_defaults(func=mark)
 
     star_parser = subparsers.add_parser("star", help=get_color("star") + "[⭑] Star/Unstar an item" + Fore.RESET)
-    star_parser.add_argument("item", help="id of the item you want to star/unstar", type=int, metavar="<item id>")
+    star_parser.add_argument("item", help="id of the item you want to star/unstar", type=int, metavar="<item id>", nargs="+")
     star_parser.set_defaults(func=star)
 
     edit_parser = subparsers.add_parser("edit", help=get_color("edit") + "[~] Edit the text of an item" + Fore.RESET)
@@ -593,9 +600,9 @@ Examples:
     edit_parser.set_defaults(func=edit)
 
     tag_parser = subparsers.add_parser("tag", help=get_color("tag") + "[#] Tag an item with text" + Fore.RESET)
-    tag_parser.add_argument("item", help="id of the item you want to tag", type=int, metavar="<item id>")
+    tag_parser.add_argument("item", help="id of the item you want to tag", type=int, metavar="<item id>", nargs="+")
     tag_parser.add_argument("-t", "--text", help="text of tag (do not specify this argument to untag)", type=str, metavar="<tag text>")
-    tag_parser.add_argument("-c", "--color", help="set the background color of the tag (default: BLUE)", type=str, default="BLUE", metavar="<background color>")
+    tag_parser.add_argument("-c", "--color", help="set the background color of the tag (default: BLUE)", type=str, metavar="<background color>")
     tag_parser.set_defaults(func=tag)
 
     run_parser = subparsers.add_parser("run", help=get_color("run") + "[>] Run an item as command" + Fore.RESET)
