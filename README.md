@@ -32,7 +32,7 @@
 ## Features
 
 * Fancy interface ✨
-* Simple & Easy to use 
+* Simple & Easy to use 🚀
 * **Fast as lightning** ⚡️
 * **Efficient and Effective** 💪🏻
 * Manage notes & tasks in multiple boards 🗒
@@ -90,10 +90,10 @@ Positional Arguments:
     undo                [^] Undo the last action
     import              [I] Import and load a JSON file, overwriting current data with it
     export              [E] Export boards as a JSON file
-    reset               [R] Reset settings to default
 
 Optional Arguments:
     -h, --help          show this help message and exit
+    --version             show program's version number and exit
     -st, --show-time    show boards with the added time of every items
     -i, --interactive   enter interactive mode
 ```
@@ -115,13 +115,13 @@ Optional Arguments:
 
 * `-b/--board <name>` : add the item to this board
 
-If no `board` is given, the item will be added to the default board (configured in `config.ini`)
+If no board `name` is specified, the item will be added to the default board.
 
 ---
 
 ### Remove Item
 
-`board remove <item id>`
+`board remove <item id> [<item id> ...]`
 
 ---
 
@@ -129,19 +129,17 @@ If no `board` is given, the item will be added to the default board (configured 
 
 Remove all items in the board.
 
-`board clear`
+`board clear [<name> [<name> ...]]`
 
-* `-b/--board <name>` : clear this board only
-
-If no `board` is given, all boards will be cleared.
+If no board `name` is specified, all boards will be cleared.
 
 ---
 
 ### Tick / Mark / Star Item
 
-`board {tick, mark, star} <item id>`
+`board {tick, mark, star} <item id> [<item id> ...]`
 
-Run this command again on the same item to untick/unmark/unstar the item
+Run this command again on the same item to untick/unmark/unstar the item.
 
 ---
 
@@ -153,7 +151,7 @@ Run this command again on the same item to untick/unmark/unstar the item
 
 ### Tag Item
 
-`board tag <item id>`
+`board tag <item id> [<item id> ...]`
 
 * `-t/--text <tag text>` : tag the item with this text
 * `-c/--color <background color>` : set the background color `colorama.Back` of this tag (default: BLUE)
@@ -198,7 +196,7 @@ The JSON file must be in a valid structure simillar to the following.
 
 ```json
 {
-    "Board Title": [
+    "Board Name": [
         {
             "id": 1,
             "data": "item text",
@@ -208,7 +206,7 @@ The JSON file must be in a valid structure simillar to the following.
             "mark": false,
             "star": false,
             "tag": "<tag text with ANSI code (auto manipulated by noteboard)>"
-        },
+        }
     ]
 }
 ```
@@ -241,7 +239,7 @@ Use `board -i/--interactive` to enter interactive mode.
 
 Enter an empty line to view boards. Enter an empty line in prompt to abort operation.
 
-*NOTE: You can use quotations (`'` or `"`) to specify multiple board titles / board titles that contain spaces and item ids.*
+*NOTE: You can use quotations (`'` or `"`) to specify multiple board names or board names that contain spaces and item ids.*
 
 ## Cautions
 
@@ -259,11 +257,9 @@ The program also uses symbols such as `⭑` and `✔` which also may not be disp
 
 Feel free to open issues for bug reports and feature requests ! (If you are reporting bugs, please include the log file `~/.noteboard/noteboard.log`).
 
-I'm currently working on the compatibility with Python 2. Any help via pull requests would be great !
-
 ## Credit
 
-This project is inspired by Klaus Sinani's [taskbook](https://github.com/klaussinani/taskbook).
+This project is inspired by [@Klaus Sinani](https://github.com/klaussinani)'s [taskbook](https://github.com/klaussinani/taskbook).
 
 ## License
 
