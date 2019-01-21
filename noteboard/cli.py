@@ -103,9 +103,9 @@ def run(args):
 
 def add(args):
     color = get_color("add")
-    item = args.item
+    item = (args.item or "").strip()
     board = args.board
-    if item.strip() == "":
+    if item == "":
         print(Fore.RED + "[!] Text must not be empty")
         return
     with Storage() as s:
@@ -192,8 +192,8 @@ def star(args):
 def edit(args):
     color = get_color("edit")
     item = args.item
-    text = args.text
-    if text.strip() == "":
+    text = (args.text or "").strip()
+    if text == "":
         print(Fore.RED + "[!] Text must not be empty")
         return
     with Storage() as s:
@@ -206,18 +206,18 @@ def edit(args):
 def tag(args):
     color = get_color("tag")
     items = args.item
-    text = args.text or ""
+    text = (args.text or "").strip()
     c = args.color or "BLUE"
     if len(text) > 10:
         print(Fore.RED + "[!] Tag text length should not be longer than 10 characters")
         return
-    if text.strip() != "":
+    if text != "":
         try:
             tag_color = eval("Back." + c.upper())
         except AttributeError:
             print(Fore.RED + "[!] 'colorama.AnsiBack' object has no attribute '{}'".format(c.upper()))
             return
-        tag_text = tag_color + Style.DIM + "#" + Style.RESET_ALL + tag_color + text.strip().replace(" ", "-") + " " + Back.RESET
+        tag_text = tag_color + Style.DIM + "#" + Style.RESET_ALL + tag_color + text.replace(" ", "-") + " " + Back.RESET
     else:
         tag_text = ""
     with Storage() as s:
@@ -240,6 +240,21 @@ def move(args):
         for item in items:
             s.move_item(item, board)
             p(color + "[&] Moved item", Style.BRIGHT + str(item), "to", Style.BRIGHT + board)
+    print()
+
+
+def rename(args):
+    color = get_color("rename")
+    board = args.board
+    new = (args.new or "").strip()
+    if new == "":
+        print(Fore.RED + "[!] Board name must not be empty")
+        return
+    with Storage() as s:
+        print()
+        s.get_board(board)  # try to get -> to test existence of the board
+        s.shelf[new] = s.shelf.pop(board)
+        p(color + "[~] Renamed", Style.BRIGHT + board, "to", Style.BRIGHT + new)
     print()
 
 
@@ -366,7 +381,7 @@ if PPT:
             except Exception:
                 exc = sys.exc_info()
                 exc = traceback.format_exception(*exc)
-                print(Style.BRIGHT + Fore.RED + "\nUncaught Exception:\n", *exc)
+                print(Style.BRIGHT + Fore.RED + "Uncaught Exception:\n", *exc)
                 logger.debug("Uncaught Exception:", exc_info=True)
             else:
                 return result
@@ -666,6 +681,11 @@ Examples:
     move_parser.add_argument("board", help="name of the destination board", type=str, metavar="<name>")
     move_parser.set_defaults(func=move)
 
+    rename_parser = subparsers.add_parser("rename", help=get_color("rename") + "[~] Rename the name of the board" + Fore.RESET)
+    rename_parser.add_argument("board", help="name of the board you want to rename", type=str, metavar="<name>")
+    rename_parser.add_argument("new", help="new name to replace the old one", type=str, metavar="<new name>")
+    rename_parser.set_defaults(func=rename)
+
     undo_parser = subparsers.add_parser("undo", help=get_color("undo") + "[^] Undo the last action" + Fore.RESET)
     undo_parser.set_defaults(func=undo)
 
@@ -702,6 +722,6 @@ Examples:
             except Exception:
                 exc = sys.exc_info()
                 exc = traceback.format_exception(*exc)
-                print(Style.BRIGHT + Fore.RED + "\nUncaught Exception:\n", *exc)
+                print(Style.BRIGHT + Fore.RED + "Uncaught Exception:\n", *exc)
                 logger.debug("Uncaught Exception:", exc_info=True)
     deinit()

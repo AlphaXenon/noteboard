@@ -290,14 +290,13 @@ class Storage:
             self.shelf.clear()
             self.logger.debug("Cleared all {} Items".format(amt))
         else:
-            try:
-                amt = len(self.shelf[board])
-                # save
-                self._save_state("Clear {} items on {}".format(amt, board), "clear")
-                # remove
-                del self.shelf[board]
-            except KeyError:
+            amt = len(self.shelf[board])
+            # save
+            self._save_state("Clear {} items on {}".format(amt, board), "clear")
+            # remove
+            if board not in self.shelf:
                 raise BoardNotFoundError(board)
+            del self.shelf[board]
             self.logger.debug("Cleared {} Items on Board: '{}'".format(amt, board))
         return amt
 
