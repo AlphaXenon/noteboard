@@ -20,6 +20,7 @@
   - [Tick / Mark / Star Item](#tick--mark--star-item)
   - [Edit Item](#edit-item)
   - [Tag Item](#tag-item)
+  - [Move Item](#move-item)
   - [Run Item as Command](#run-item-as-command)
   - [Undo Previous Actions](#undo-previous-actions)
   - [Import Boards from External JSON File](#import-boards-from-external-json-file)
@@ -77,9 +78,9 @@ $ [sudo] python3 setup.py install
 ## Usage
 
 ```text
-Positional Arguments:
+Actions:
     add                 [+] Add an item to a board
-    remove              [-] Remove an item
+    remove              [-] Remove items
     clear               [x] Clear all items on a/all boards
     tick                [✓] Tick/Untick an item
     mark                [*] Mark/Unmark an item
@@ -87,13 +88,14 @@ Positional Arguments:
     edit                [~] Edit the text of an item
     tag                 [#] Tag an item with text
     run                 [>] Run an item as command
+    move                [&] Move an item to another board
     undo                [^] Undo the last action
-    import              [I] Import and load a JSON file, overwriting current data with it
+    import              [I] Import and load boards from JSON file
     export              [E] Export boards as a JSON file
 
-Optional Arguments:
+Options:
     -h, --help          show this help message and exit
-    --version             show program's version number and exit
+    --version           show program's version number and exit
     -st, --show-time    show boards with the added time of every items
     -i, --interactive   enter interactive mode
 ```
@@ -157,6 +159,12 @@ Run this command again on the same item to untick/unmark/unstar the item.
 * `-c/--color <background color>` : set the background color `colorama.Back` of this tag (default: BLUE)
 
 If no `text` is given, existing tag of this item will be removed.
+
+---
+
+### Move Item
+
+`board move <item id> [<item id> ...] <name>`
 
 ---
 

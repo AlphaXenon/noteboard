@@ -236,7 +236,7 @@ def move(args):
         print()
         for item in items:
             s.move_item(item, board)
-            p(color + "[#] Moved item", Style.BRIGHT + str(item), "to", Style.BRIGHT + board)
+            p(color + "[&] Moved item", Style.BRIGHT + str(item), "to", Style.BRIGHT + board)
     print()
 
 
