@@ -23,16 +23,18 @@ Noteboard lets you manage your notes & tasks in a tidy and fancy way.
 
 ## Features
 
-* Fancy interface
-* Lightweight & Easy to use
-* Manage notes & tasks in multiple boards
-* Run item as command inside terminal (subprocess)
+* Fancy interface ✨
+* Simple & Easy to use 🚀
+* Fast as lightning ⚡️
+* Efficient and Effective 💪🏻
+* Manage notes & tasks in multiple boards 🗒
+* Run item as command inside terminal (subprocess) 💨
 * Import boards from external JSON files & Export boards as JSON files
-* Save & Load states
-* Undo previous actions / changes
+* Save & Load historic states
+* Undo multiple actions / changes
 * Interactive mode for dynamic operations
 * Autocomplete & Autosuggestions in interactive mode
-* Store data using the `shelve` library
+* Gzip compressed storage 📚
 """
 
 # Setup
