@@ -24,6 +24,7 @@ try:
 except ImportError:
     PPT = False
 
+logger = logging.getLogger("noteboard")
 COLORS = {
     "add": Fore.GREEN,
     "remove": Fore.LIGHTMAGENTA_EX,
@@ -361,10 +362,12 @@ if PPT:
                 result = func(*args, **kwargs)
             except NoteboardException as e:
                 print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
+                logger.debug("ERROR:", exc_info=True)
             except Exception:
                 exc = sys.exc_info()
                 exc = traceback.format_exception(*exc)
-                print(Style.BRIGHT + Fore.RED + "Uncaught Exception:", "".join(exc))
+                print(Style.BRIGHT + Fore.RED + "\nUncaught Exception:\n", *exc)
+                logger.debug("Uncaught Exception:", exc_info=True)
             else:
                 return result
 
@@ -588,7 +591,8 @@ if PPT:
 
 
 def main():
-    description = (Style.BRIGHT + "    \033[4mNoteboard" + Style.RESET_ALL + " lets you manage your " + Fore.YELLOW + "notes" + Fore.RESET + " & " + Fore.CYAN + "tasks" + Fore.RESET + " in a " + Fore.LIGHTMAGENTA_EX + "tidy" + Fore.RESET + " and " + Fore.LIGHTMAGENTA_EX + "fancy" + Fore.RESET + " way.")
+    description = (Style.BRIGHT + "    \033[4mNoteboard" + Style.RESET_ALL + " lets you manage your " + Fore.YELLOW + "notes" + Fore.RESET + " & " + Fore.CYAN + "tasks" + Fore.RESET
+                   + " in a " + Fore.LIGHTMAGENTA_EX + "tidy" + Fore.RESET + " and " + Fore.LIGHTMAGENTA_EX + "fancy" + Fore.RESET + " way.")
     epilog = \
 """
 Examples:
@@ -694,9 +698,10 @@ Examples:
                 args.func(args)
             except NoteboardException as e:
                 print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
+                logger.debug("ERROR:", exc_info=True)
             except Exception:
-                logging.getLogger("noteboard").error("Uncaught Exception:", exc_info=True)
                 exc = sys.exc_info()
                 exc = traceback.format_exception(*exc)
-                print(Style.BRIGHT + Fore.RED + "Uncaught Exception:", "".join(exc))
+                print(Style.BRIGHT + Fore.RED + "\nUncaught Exception:\n", *exc)
+                logger.debug("Uncaught Exception:", exc_info=True)
     deinit()

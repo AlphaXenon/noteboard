@@ -7,7 +7,7 @@ import os
 
 from . import DIR_PATH, STATES_PATH, STORAGE_PATH, STORAGE_GZ_PATH, DEFAULT_BOARD
 from .logger import setup_logger
-from .utils import raise_error, get_time
+from .utils import get_time
 
 
 class NoteboardException(Exception):
@@ -36,12 +36,8 @@ class BoardNotFoundError(NoteboardException):
 
 class States:
 
-    """
-    This class is in charge of saving & loading historic states of Noteboard.
-    Called in `Storage` class.
-
-    New in 1.0.4:
-        Implemented gzip compression to states.pkl (-> states.pkl.gz) in order to reduce the size of the pickle file.
+    """This class is in charge of saving & loading historic states of Noteboard.
+    * Called in `Storage` class.
     """
 
     def __init__(self):
@@ -59,7 +55,7 @@ class States:
             with gzip.open(STATES_PATH, "rb") as pkl:
                 self.stacks = pickle.load(pkl)
         except FileNotFoundError:
-            raise_error(NoteboardException("States file not found for loading"))
+            raise NoteboardException("States file not found for loading")
         if len(self.stacks) == 0:
             return False    # No more undos
         if rm is True:
@@ -118,7 +114,7 @@ class Storage:
     def open(self):
         # Open shelf
         if self._shelf is not None:
-            raise_error(NoteboardException("Shelf object has already been opened."))
+            raise NoteboardException("Shelf object has already been opened.")
 
         if not os.path.isdir(DIR_PATH):
             self.logger.debug("Making directory {} ...".format(DIR_PATH))
@@ -135,7 +131,7 @@ class Storage:
 
     def close(self):
         if self._shelf is None:
-            raise_error(NoteboardException("No opened shelf object to be closed."))
+            raise NoteboardException("No opened shelf object to be closed.")
 
         # Cleanup
         for board in self.shelf:
@@ -157,7 +153,7 @@ class Storage:
     def shelf(self):
         """Use this property to access the shelf object from the outside."""
         if self._shelf is None:
-            raise_error(NoteboardException("No opened shelf object to be accessed."))
+            raise NoteboardException("No opened shelf object to be accessed.")
         return self._shelf
 
     @property
@@ -185,14 +181,14 @@ class Storage:
             for item in self.shelf[board]:
                 if item["id"] == id:
                     return item
-        raise_error(ItemNotFoundError(id))
+        raise ItemNotFoundError(id)
 
     def get_board(self, name):
         """Get the board with the given name. BoardNotFound will be raised if nothing found."""
         for board in self.shelf:
             if board == name:
                 return self.shelf[name]
-        raise_error(BoardNotFoundError(name))
+        raise BoardNotFoundError(name)
 
     def get_all_items(self):
         items = []
@@ -275,7 +271,7 @@ class Storage:
             if len(self.shelf[board]) == 0:
                 del self.shelf[board]
         if status is False:
-            raise_error(ItemNotFoundError(id))
+            raise ItemNotFoundError(id)
         return removed, board_of_removed
     
     def clear_board(self, board=None):
@@ -301,7 +297,7 @@ class Storage:
                 # remove
                 del self.shelf[board]
             except KeyError:
-                raise_error(BoardNotFoundError(board))
+                raise BoardNotFoundError(board)
             self.logger.debug("Cleared {} Items on Board: '{}'".format(amt, board))
         return amt
 
@@ -334,7 +330,7 @@ class Storage:
                     item[key] = value
                     self.logger.debug("Modified Item from {} to {}".format(json.dumps(old), json.dumps(item)))
                     return old
-        raise_error(ItemNotFoundError(id))
+        raise ItemNotFoundError(id)
 
     def move_item(self, id, board):
         """[Action]
@@ -361,7 +357,7 @@ class Storage:
                     # remove from the current board `b`
                     self.shelf[b].remove(item)
                     return item
-        raise_error(ItemNotFoundError(id))
+        raise ItemNotFoundError(id)
 
     @staticmethod
     def _validate_json(data):
@@ -398,12 +394,12 @@ class Storage:
             with open(path, "r") as f:
                 data = json.load(f)
         except FileNotFoundError:
-            raise_error(NoteboardException("File not found ({})".format(path)))
+            raise NoteboardException("File not found ({})".format(path))
         except json.JSONDecodeError:
-            raise_error(NoteboardException("Error when decoding JSON format"))
+            raise NoteboardException("Error when decoding JSON format")
         else:
             if self._validate_json(data) is False:
-                raise_error(NoteboardException("Invalid JSON structure for board"))
+                raise NoteboardException("Invalid JSON structure for board")
             # Save
             self._save_state("Import boards from {}".format(path), "import")
             # Overwrite the current shelf and update it
