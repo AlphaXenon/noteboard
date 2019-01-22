@@ -1,6 +1,6 @@
 <h1 align="center">$ noteboard</h1>
 
-<p align="center"><img src="./screenshot.jpg"></p>
+<p align="center"><img src="./screenshot.png" width=70%></p>
 
 [![pypi](https://img.shields.io/pypi/v/noteboard.svg)](https://pypi.python.org/pypi/noteboard) [![downloads](https://img.shields.io/pypi/dm/noteboard.svg)](https://pypi.python.org/pypi/noteboard) [![license](https://img.shields.io/github/license/AlphaXenon/noteboard.svg)](./LICENSE.txt)
 
