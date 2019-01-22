@@ -4,10 +4,12 @@ import gzip
 import shutil
 import json
 import os
+import logging
 
 from . import DIR_PATH, STATES_PATH, STORAGE_PATH, STORAGE_GZ_PATH, DEFAULT_BOARD
-from .logger import setup_logger
 from .utils import get_time
+
+logger = logging.getLogger("noteboard")
 
 
 class NoteboardException(Exception):
@@ -42,8 +44,7 @@ class States:
 
     def __init__(self):
         self.stacks = []
-        self.logger = setup_logger()
-    
+
     def load(self, rm=True):
         """
         Load the very last state (info & data) and pop it from the stack.
@@ -60,7 +61,7 @@ class States:
             return False    # No more undos
         if rm is True:
             state = self.stacks.pop()    # => [undo] get the last state and remove it
-            self.logger.debug("Load state: {}".format(state))
+            logger.debug("Load state: {}".format(state))
             # Update the pickle file
             with gzip.open(STATES_PATH, "wb") as pkl:
                 pickle.dump(self.stacks, pkl)
@@ -88,7 +89,7 @@ class States:
             self.stacks = pickle.load(pkl)
         # => dump state data
         state = {"info": info, "action": action, "data": data}
-        self.logger.debug("Dump state: {}".format(state))
+        logger.debug("Dump state: {}".format(state))
         self.stacks.append(state)
         with gzip.open(STATES_PATH, "wb") as pkl:
             pickle.dump(self.stacks, pkl)
@@ -101,7 +102,6 @@ class Storage:
     def __init__(self):
         self._shelf = None
         self._States = States()
-        self.logger = setup_logger()
 
     def __enter__(self):
         self.open()
@@ -117,7 +117,7 @@ class Storage:
             raise NoteboardException("Shelf object has already been opened.")
 
         if not os.path.isdir(DIR_PATH):
-            self.logger.debug("Making directory {} ...".format(DIR_PATH))
+            logger.debug("Making directory {} ...".format(DIR_PATH))
             os.mkdir(DIR_PATH)
 
         if os.path.isfile(STORAGE_GZ_PATH):
@@ -202,7 +202,7 @@ class Storage:
             raise ValueError("Board title must not be empty.")
         if board in self.shelf.keys():
             raise KeyError("Board already exists.")
-        self.logger.debug("Added Board: '{}'".format(board))
+        logger.debug("Added Board: '{}'".format(board))
         self.shelf[board] = []  # register board by adding an empty list
 
     def _add_item(self, id, board, text):
@@ -218,7 +218,7 @@ class Storage:
             "tag": ""           # str
         }
         self.shelf[board].append(payload)
-        self.logger.debug("Added Item: {} to Board: '{}'".format(json.dumps(payload), board))
+        logger.debug("Added Item: {} to Board: '{}'".format(json.dumps(payload), board))
         return payload
 
     def add_item(self, board, text):
@@ -266,7 +266,7 @@ class Storage:
                     self.shelf[board].remove(item)
                     removed = item
                     board_of_removed = board
-                    self.logger.debug("Removed Item: {} on Board: '{}'".format(json.dumps(item), board))
+                    logger.debug("Removed Item: {} on Board: '{}'".format(json.dumps(item), board))
                     status = True
             if len(self.shelf[board]) == 0:
                 del self.shelf[board]
@@ -288,7 +288,7 @@ class Storage:
             self._save_state("Clear {} items on all boards".format(amt), "clear")
             # remove all items of all boards
             self.shelf.clear()
-            self.logger.debug("Cleared all {} Items".format(amt))
+            logger.debug("Cleared all {} Items".format(amt))
         else:
             amt = len(self.shelf[board])
             # save
@@ -297,7 +297,7 @@ class Storage:
             if board not in self.shelf:
                 raise BoardNotFoundError(board)
             del self.shelf[board]
-            self.logger.debug("Cleared {} Items on Board: '{}'".format(amt, board))
+            logger.debug("Cleared {} Items on Board: '{}'".format(amt, board))
         return amt
 
     def modify_item(self, id, key, value):
@@ -327,7 +327,7 @@ class Storage:
                         item["time"] = time
                         item["date"] = date
                     item[key] = value
-                    self.logger.debug("Modified Item from {} to {}".format(json.dumps(old), json.dumps(item)))
+                    logger.debug("Modified Item from {} to {}".format(json.dumps(old), json.dumps(item)))
                     return old
         raise ItemNotFoundError(id)
 

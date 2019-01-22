@@ -2,6 +2,7 @@ import time
 import datetime
 import os
 import json
+import logging
 
 
 DEFAULT = {
@@ -14,6 +15,19 @@ def get_time():
     date = datetime.date.today().strftime("%a %d %b %Y")
     timestamp = int(time.time())
     return date, timestamp
+
+
+def setup_logger(path):
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] (%(funcName)s in %(filename)s) %(message)s", "")
+    handler = logging.FileHandler(path, mode="a+")
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger("noteboard")
+    logger.setLevel(logging.DEBUG)
+    if not logger.hasHandlers():
+        logger.addHandler(handler)
+    return logger
 
 
 def init_config(path):

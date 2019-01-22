@@ -1,7 +1,7 @@
 # Prepare directory paths
 import os
 
-from .utils import init_config, load_config
+from .utils import init_config, load_config, setup_logger
 
 
 CONFIG_PATH = os.path.join(os.path.expanduser("~"), "noteboard.json")
@@ -24,3 +24,5 @@ STORAGE_PATH = os.path.join(path, "storage")
 STORAGE_GZ_PATH = os.path.join(path, "storage.gz")
 
 DEFAULT_BOARD = (config.get("DefaultBoardName") or "Board").strip()
+
+setup_logger(LOG_PATH)
