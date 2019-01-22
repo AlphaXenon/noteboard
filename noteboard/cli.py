@@ -8,7 +8,7 @@ import traceback
 import logging
 from colorama import init, deinit, Fore, Back, Style
 
-from . import DEFAULT_BOARD
+from . import DEFAULT_BOARD, TAGS
 from .__version__ import __version__
 from .storage import Storage, NoteboardException
 from .utils import get_time
@@ -208,7 +208,7 @@ def tag(args):
     color = get_color("tag")
     items = args.item
     text = (args.text or "").strip()
-    c = args.color or "BLUE"
+    c = args.color or TAGS.get(text, "") or TAGS["default"]
     if len(text) > 10:
         print(Fore.RED + "[!] Tag text length should not be longer than 10 characters")
         return
@@ -670,7 +670,7 @@ Examples:
     tag_parser = subparsers.add_parser("tag", help=get_color("tag") + "[#] Tag an item with text" + Fore.RESET)
     tag_parser.add_argument("item", help="id of the item you want to tag", type=int, metavar="<item id>", nargs="+")
     tag_parser.add_argument("-t", "--text", help="text of tag (do not specify this argument to untag)", type=str, metavar="<tag text>")
-    tag_parser.add_argument("-c", "--color", help="set the background color of the tag (default: BLUE)", type=str, metavar="<background color>")
+    tag_parser.add_argument("-c", "--color", help="set the background color of the tag (default: {})".format(TAGS["default"]), type=str, metavar="<background color>")
     tag_parser.set_defaults(func=tag)
 
     run_parser = subparsers.add_parser("run", help=get_color("run") + "[>] Run an item as command" + Fore.RESET)

@@ -8,6 +8,9 @@ import logging
 DEFAULT = {
     "StoragePath": "~/.noteboard/",
     "DefaultBoardName": "Board",
+    "Tags": {
+        "default": "BLUE",
+    }
 }
 
 

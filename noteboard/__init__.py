@@ -4,7 +4,7 @@ import os
 from .utils import init_config, load_config, setup_logger
 
 
-CONFIG_PATH = os.path.join(os.path.expanduser("~"), "noteboard.json")
+CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".noteboard.json")
 
 if not os.path.isfile(CONFIG_PATH):
     init_config(CONFIG_PATH)
@@ -24,5 +24,6 @@ STORAGE_PATH = os.path.join(path, "storage")
 STORAGE_GZ_PATH = os.path.join(path, "storage.gz")
 
 DEFAULT_BOARD = (config.get("DefaultBoardName") or "Board").strip()
+TAGS = config.get("Tags", {"default": "BLUE"})
 
 setup_logger(LOG_PATH)

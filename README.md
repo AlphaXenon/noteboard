@@ -40,6 +40,7 @@
 * **Efficient and Effective** 💪🏻
 * Manage notes & tasks in multiple boards 🗒
 * **Run item as command inside terminal (subprocess)** 💨
+* **Tag item with color and text**
 * Import boards from external JSON files & Export boards as JSON files
 * **Save & Load historic states**
 * **Undo multiple actions / changes**
@@ -165,6 +166,8 @@ Run this command again on the same item to untick/unmark/unstar the item.
 
 If no `text` is given, existing tag of this item will be removed.
 
+If no `color` is specified, color will be found in `config.Tags.<text>`. If still no color is found, the default color `config.Tags.default` will be used.
+
 ---
 
 ### Move Item
@@ -272,11 +275,19 @@ Enter an empty line to view boards. Enter an empty line in prompt to abort opera
 ```json
 {
     "StoragePath": "~/.noteboard/",
-    "DefaultBoardName": "Board"
+    "DefaultBoardName": "Board",
+    "Tags": {
+        "default": "BLUE"
+    }
 }
 ```
 * `StoragePath` : path to the custom storage path (where the data and log file are stored)
-* `DefaultBoardName` : default board name, is used when no board is specified when adding item with `add` action
+* `DefaultBoardName` : default board name, is used when no board is specified when adding item
+* `Tags` : colors preset of tags
+  * `default` : **[required]** this color is used if no color is specified when tagging item and no corresponding color of the tag text is found
+  * `<tag text>` : add you custom tag colors by adding `<tag text>: <color>` to `Tags` attribute of the config
+
+***NOTE:** `color` must be in upper case and a valid attribute of `colorama.Back`. E.g. `LIGHTBLUE_EX` for light blue and `CYAN` for cyan.*
 
 ## Cautions
 
