@@ -266,7 +266,7 @@ Enter an empty line to view boards. Enter an empty line in prompt to abort opera
 
 ## Configurations
 
-**Path:** *~/.config/noteboard/config.json*
+**Path:** *~/noteboard.json*
 
 ### Default Configurations
 ```json
