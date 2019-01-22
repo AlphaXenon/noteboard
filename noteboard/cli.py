@@ -412,7 +412,7 @@ if PPT:
                             raise ValidationError(message="Item '{}' does not exist".format(item))
 
         intro = "{0}[Interactive Mode]{1} Type help or ? to list all available commands.".format(Fore.LIGHTMAGENTA_EX, Fore.RESET)
-        prompt = "{}@{}(noteboard){}>>${}".format(Fore.CYAN, Style.BRIGHT + Fore.YELLOW, Fore.RESET, Style.RESET_ALL) + " "
+        prompt = "{}@{}(noteboard){}➤{}".format(Fore.CYAN, Style.BRIGHT + Fore.YELLOW, Fore.RESET, Style.RESET_ALL) + " "
         commands = ["add", "remove", "clear", "edit", "move", "undo", "import", "quit"]
 
         def do_help(self, arg):
