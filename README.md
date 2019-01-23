@@ -1,8 +1,15 @@
 <h1 align="center">$ noteboard</h1>
 
+<p align="center"><em>A <a href="https://github.com/klaussinani/taskbook">taskbook</a> clone written in Python</em></p>
+
 <p align="center"><img src="./screenshot.png" width=70%></p>
 
-[![pypi](https://img.shields.io/pypi/v/noteboard.svg)](https://pypi.python.org/pypi/noteboard) [![downloads](https://img.shields.io/pypi/dm/noteboard.svg)](https://pypi.python.org/pypi/noteboard) [![license](https://img.shields.io/github/license/AlphaXenon/noteboard.svg)](./LICENSE.txt)
+<p align="center">
+  <a href="https://pypi.python.org/pypi/noteboard"><img src="https://img.shields.io/pypi/v/noteboard.svg"></a>
+  <a href="https://pypi.python.org/pypi/noteboard"><img src="https://img.shields.io/pypi/dm/noteboard.svg"></a>
+  <a href="./LICENSE.txt"><img src="https://img.shields.io/github/license/AlphaXenon/noteboard.svg"></a>
+</p>
+
 
 **Noteboard** is a mini command-line tool which lets you manage and store your notes & tasks in a tidy and fancy way, right inside your terminal.
 
