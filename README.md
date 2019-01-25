@@ -130,7 +130,7 @@ Options:
 
 If no board `name` is specified, the item will be added to the default board.
 
-If board does not exist, one will be created.
+Board will be automatically initialized if one does not exist.
 
 ---
 
