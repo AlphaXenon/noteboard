@@ -55,6 +55,10 @@
 * **Autocomplete & Autosuggestions in interactive mode**
 * **`Gzip` compressed storage** 📚
 
+<p align="center"><img src="./features.png" width=75%></p>
+
+<p align="center">Showing <em>features</em> of <strong>noteboard</strong> in a board view 👆🏻</p>
+
 ## How the storage works
 
 The main storage is powered by `shelve`, a Python standard library, which provides a lightweight & persistent file-based database system.
