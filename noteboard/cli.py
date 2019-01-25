@@ -292,8 +292,15 @@ def import_(args):
 def export(args):
     color = get_color("export")
     dest = args.dest
+    path = os.path.abspath(os.path.expanduser(dest))
+    if os.path.isfile(path):
+        print(Fore.YELLOW + "[!] File {} already exists".format(path))
+        ask = input("[?] Overwrite (y/n) ? ")
+        if ask != "y":
+            print(Fore.RED + "[!] Operation Aborted")
+            return
     with Storage() as s:
-        full_path = s.export(dest)
+        full_path = s.export(path)
     print()
     p(color + "[E] Exported boards to", Style.BRIGHT + full_path)
     print()
