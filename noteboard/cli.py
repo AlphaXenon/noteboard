@@ -306,7 +306,7 @@ def export(args):
     print()
 
 
-def display_board(st=False, im=False):
+def display_board(date=False, im=False):
     with Storage() as s:
         shelf = dict(s.shelf)
 
@@ -364,10 +364,10 @@ def display_board(st=False, im=False):
                 day_text = Fore.LIGHTBLACK_EX + "{}d".format(days)
 
             # print text all together
-            if st is True:
-                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + "({})".format(item["date"]))
+            if date is True:
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + "({})".format(item["date"]))
             else:
-                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]), mark, text_color + item["text"], tag_text, day_text)
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, day_text)
     print()
     print_footer()
     print_total()
@@ -640,7 +640,7 @@ Examples:
     parser._positionals.title = "Actions"
     parser._optionals.title = "Options"
     parser.add_argument("--version", action="version", version="noteboard " + __version__)
-    parser.add_argument("-st", "--show-time", help="show boards with the added time of every items", default=False, action="store_true", dest="st")
+    parser.add_argument("-d", "--date", help="show boards with the added date of every items", default=False, action="store_true", dest="d")
     parser.add_argument("-i", "--interactive", help="enter interactive mode", default=False, action="store_true", dest="i")
     subparsers = parser.add_subparsers()
 
@@ -720,7 +720,7 @@ Examples:
         try:
             args.func
         except AttributeError:
-            display_board(st=args.st)
+            display_board(date=args.d)
         else:
             try:
                 args.func(args)

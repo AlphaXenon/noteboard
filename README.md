@@ -111,7 +111,7 @@ Actions:
 Options:
     -h, --help          show this help message and exit
     --version           show program's version number and exit
-    -st, --show-time    show boards with the added time of every items
+    -d, --date    show boards with the added date of every items
     -i, --interactive   enter interactive mode
 ```
 
@@ -121,7 +121,7 @@ Options:
 
 `board`
 
-* `-st/--show-time` : show boards with the last modified time of each items
+* `-d/--date` : show boards with the last modified date of each items in the format of `<weekday> <day> <month> <year>`. e.g. `Fri 25 Jan 2019`
 * `-i/--interactive` : enter [interactive mode](#interactive-mode)
 
 ---
