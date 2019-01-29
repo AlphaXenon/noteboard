@@ -111,7 +111,8 @@ Actions:
 Options:
     -h, --help          show this help message and exit
     --version           show program's version number and exit
-    -d, --date    show boards with the added date of every items
+    -d, --date          show boards with the added date of every items
+    -s, --sort          show boards with items on each boards sorted alphabetically by their text
     -i, --interactive   enter interactive mode
 ```
 
@@ -122,6 +123,7 @@ Options:
 `board`
 
 * `-d/--date` : show boards with the last modified date of each items in the format of `<weekday> <day> <month> <year>`. e.g. `Fri 25 Jan 2019`
+* `-s/--sort` : show boards with items on each boards sorted alphabetically by the texts the items
 * `-i/--interactive` : enter [interactive mode](#interactive-mode)
 
 ---

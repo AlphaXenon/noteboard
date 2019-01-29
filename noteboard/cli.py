@@ -306,9 +306,12 @@ def export(args):
     print()
 
 
-def display_board(date=False, im=False):
+def display_board(date=False, sort=False, im=False):
     with Storage() as s:
         shelf = dict(s.shelf)
+    if sort:
+        for board in shelf:
+            shelf[board] = sorted(shelf[board], key=lambda x: x["text"].lower())
 
     # print initial help message
     if not shelf:
@@ -629,7 +632,7 @@ Examples:
   $ board import ~/Documents/board.json
   $ board export ~/Documents/save.json
 
-{0}Made with {1}\u2764{2} by AlphaXenon{3}
+{0}Made with {1}\u2764{2} by AlphaXenon{3} (https://github.com/AlphaXenon/noteboard)
 """.format(Style.BRIGHT, Fore.RED, Fore.RESET, Style.RESET_ALL)
     parser = argparse.ArgumentParser(
         prog="board",
@@ -641,6 +644,7 @@ Examples:
     parser._optionals.title = "Options"
     parser.add_argument("--version", action="version", version="noteboard " + __version__)
     parser.add_argument("-d", "--date", help="show boards with the added date of every items", default=False, action="store_true", dest="d")
+    parser.add_argument("-s", "--sort", help="show boards with items on each boards sorted alphabetically by their text", default=False, action="store_true", dest="s")
     parser.add_argument("-i", "--interactive", help="enter interactive mode", default=False, action="store_true", dest="i")
     subparsers = parser.add_subparsers()
 
@@ -720,7 +724,7 @@ Examples:
         try:
             args.func
         except AttributeError:
-            display_board(date=args.d)
+            display_board(date=args.d, sort=args.s)
         else:
             try:
                 args.func(args)
