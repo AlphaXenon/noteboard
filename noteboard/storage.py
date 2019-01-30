@@ -212,6 +212,7 @@ class Storage:
             "text": text,       # str
             "time": timestamp,  # int
             "date": date,       # str
+            "due": None,        # int
             "tick": False,      # bool
             "mark": False,      # bool
             "star": False,      # bool
@@ -360,7 +361,8 @@ class Storage:
 
     @staticmethod
     def _validate_json(data):
-        keys = ["id", "text", "time", "date", "tick", "mark", "star", "tag"]
+        keys = [("id", int), ("text", str), ("time", int), ("date", str), ("due", int),
+                ("tick", bool), ("mark", bool), ("star", bool), ("tag", str)]
         for board in data:
             if str(board) == "":
                 return False
@@ -372,9 +374,15 @@ class Storage:
                 if not isinstance(item, dict):
                     return False
                 # Check for existence of keys
-                for key in keys:
+                for key, _ in keys:
                     if key not in item.keys():
                         return False
+                # Check for value types
+                for key, value in item.items():
+                    for k, t in keys:
+                        if k == key:
+                            if not isinstance(value, t):
+                                return False
         return True
 
     def import_(self, path):
@@ -395,10 +403,10 @@ class Storage:
         except FileNotFoundError:
             raise NoteboardException("File not found ({})".format(path))
         except json.JSONDecodeError:
-            raise NoteboardException("Error when decoding JSON format")
+            raise NoteboardException("Failed to decode JSON")
         else:
             if self._validate_json(data) is False:
-                raise NoteboardException("Invalid JSON structure for board")
+                raise NoteboardException("Invalid JSON structure for noteboard")
             # Save
             self._save_state("Import boards from {}".format(path), "import")
             # Overwrite the current shelf and update it

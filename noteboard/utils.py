@@ -15,9 +15,33 @@ DEFAULT = {
 
 
 def get_time():
-    date = datetime.date.today().strftime("%a %d %b %Y")
+    date = datetime.date.today().strftime("%a %d %b %Y")  # str
     timestamp = int(time.time())
     return date, timestamp
+
+
+def to_timestamp(date):
+    return int(time.mktime(date.timetuple()))
+
+
+def to_datetime(ts):
+    return datetime.date.fromtimestamp(ts)  # datetime instance
+
+
+def time_diff(ts, reverse=False):
+    """Get the time difference between the given timestamp and the current time."""
+    date = datetime.datetime.fromtimestamp(ts)
+    now = datetime.datetime.fromtimestamp(get_time()[1])
+    if reverse:
+        return date - now  # datetime instance
+    return now - date  # datetime instance
+
+
+def add_date(days):
+    """Get the datetime with `days` added to the current datetime."""
+    today = datetime.date.today()
+    date = today + datetime.timedelta(days=days)
+    return date  # datetime instance
 
 
 def setup_logger(path):

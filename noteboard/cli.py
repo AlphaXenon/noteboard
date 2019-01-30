@@ -1,8 +1,9 @@
 import argparse
 import sys
 import os
+import re
 import cmd
-import datetime
+import time
 import shlex
 import traceback
 import logging
@@ -11,7 +12,7 @@ from colorama import init, deinit, Fore, Back, Style
 from . import DEFAULT_BOARD, TAGS
 from .__version__ import __version__
 from .storage import Storage, NoteboardException
-from .utils import get_time
+from .utils import get_time, time_diff, add_date, to_timestamp, to_datetime
 
 # trying to import the optional prompt toolkit library
 PPT = True
@@ -34,6 +35,7 @@ COLORS = {
     "mark": Fore.YELLOW,
     "star": Fore.YELLOW,
     "tag": Fore.LIGHTBLUE_EX,
+    "due": Fore.LIGHTBLUE_EX,
     "edit": Fore.LIGHTCYAN_EX,
     "move": Fore.LIGHTCYAN_EX,
     "rename": Fore.LIGHTCYAN_EX,
@@ -232,6 +234,37 @@ def tag(args):
     print()
 
 
+def due(args):
+    color = get_color("due")
+    items = args.item
+    date = args.date or ""
+    match = re.findall(r"\d+[d|w]", date)
+    if date:
+        if not match:
+            print(Fore.RED + "[!] Invalid date pattern format")
+            return
+        days = 0
+        for m in match:
+            if m[-1] == "d":
+                days += int(m[:-1])
+            elif m[-1] == "w":
+                days += int(m[:-1]) * 7
+        duedate = add_date(days)
+        ts = to_timestamp(duedate)
+    else:
+        ts = None
+
+    with Storage() as s:
+        print()
+        for item in items:
+            s.modify_item(item, "due", ts)
+            if ts:
+                p(color + "[:] Assigned due date", duedate, color + "to", Style.BRIGHT + str(item))
+            else:
+                p(color + "[:] Unassigned due date of item", Style.BRIGHT + str(item))
+    print()
+
+
 def move(args):
     color = get_color("move")
     items = args.item
@@ -357,20 +390,31 @@ def display_board(date=False, sort=False, im=False):
             if item["star"] is True:
                 star = Fore.LIGHTYELLOW_EX + "⭑"
 
-            # calculate days difference between two date object by timestamps
-            time = datetime.datetime.fromtimestamp(item["time"])
-            time_now = datetime.datetime.fromtimestamp(get_time()[1])
-            days = (time_now - time).days
+            days = time_diff(item["time"]).days
             if days <= 0:
                 day_text = ""
             else:
                 day_text = Fore.LIGHTBLACK_EX + "{}d".format(days)
 
+            due_text = ""
+            duedate = ""
+            if item["due"]:
+                duedate = to_datetime(item["due"])
+                due_days = time_diff(to_timestamp(duedate), reverse=True).days + 1  # + 1 because today is included
+
+                if due_days == 0:
+                    text = Fore.RED + "today"
+                if due_days < 0:
+                    text = Fore.YELLOW + "{}d ago".format(due_days)
+                if due_days > 0:
+                    text = "{}d".format(due_days)
+                due_text = "{}(due: {}{})".format(Fore.LIGHTBLACK_EX, text, Style.RESET_ALL + Fore.LIGHTBLACK_EX)
+
             # print text all together
             if date is True:
-                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + "({})".format(item["date"]))
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + str(item["date"]), (Fore.LIGHTBLACK_EX + "(due: {})".format(duedate)) if item["due"] else "")
             else:
-                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, day_text)
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, due_text, day_text)
     print()
     print_footer()
     print_total()
@@ -643,8 +687,8 @@ Examples:
     parser._positionals.title = "Actions"
     parser._optionals.title = "Options"
     parser.add_argument("--version", action="version", version="noteboard " + __version__)
-    parser.add_argument("-d", "--date", help="show boards with the added date of every items", default=False, action="store_true", dest="d")
-    parser.add_argument("-s", "--sort", help="show boards with items on each boards sorted alphabetically by their text", default=False, action="store_true", dest="s")
+    parser.add_argument("-d", "--date", help="show boards with the added date of every item", default=False, action="store_true", dest="d")
+    parser.add_argument("-s", "--sort", help="show boards with items on each board sorted alphabetically", default=False, action="store_true", dest="s")
     parser.add_argument("-i", "--interactive", help="enter interactive mode", default=False, action="store_true", dest="i")
     subparsers = parser.add_subparsers()
 
@@ -683,6 +727,11 @@ Examples:
     tag_parser.add_argument("-t", "--text", help="text of tag (do not specify this argument to untag)", type=str, metavar="<tag text>")
     tag_parser.add_argument("-c", "--color", help="set the background color of the tag (default: {})".format(TAGS["default"]), type=str, metavar="<background color>")
     tag_parser.set_defaults(func=tag)
+
+    due_parser = subparsers.add_parser("due", help=get_color("due") + "[:] Assign a due date to an item" + Fore.RESET)
+    due_parser.add_argument("item", help="id of the item", type=int, metavar="<item id>", nargs="+")
+    due_parser.add_argument("-d", "--date", help="due date of the item in the format of `<digit><d|w>` e.g. '1w4d' for 1 week and 4 days (11 days)", type=str, metavar="<due date>")
+    due_parser.set_defaults(func=due)
 
     run_parser = subparsers.add_parser("run", help=get_color("run") + "[>] Run an item as command" + Fore.RESET)
     run_parser.add_argument("item", help="id of the item you want to run", type=int, metavar="<item id>")

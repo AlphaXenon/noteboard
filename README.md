@@ -101,6 +101,7 @@ Actions:
     star                [⭑] Star/Unstar an item
     edit                [~] Edit the text of an item
     tag                 [#] Tag an item with text
+    due                 [:] Assign a due date to an item
     run                 [>] Run an item as command
     move                [&] Move an item to another board
     rename              [~] Rename the name of the board
@@ -111,8 +112,8 @@ Actions:
 Options:
     -h, --help          show this help message and exit
     --version           show program's version number and exit
-    -d, --date          show boards with the added date of every items
-    -s, --sort          show boards with items on each boards sorted alphabetically by their text
+    -d, --date          show boards with the added date of every item
+    -s, --sort          show boards with items on each board sorted alphabetically
     -i, --interactive   enter interactive mode
 ```
 
@@ -122,8 +123,8 @@ Options:
 
 `board`
 
-* `-d/--date` : show boards with the last modified date of each items in the format of `<weekday> <day> <month> <year>`. e.g. `Fri 25 Jan 2019`
-* `-s/--sort` : show boards with items on each boards sorted alphabetically by the texts the items
+* `-d/--date` : show boards with the last modified date of each item in the format of `<weekday> <day> <month> <year>`. e.g. `Fri 25 Jan 2019`
+* `-s/--sort` : show boards with items on each board sorted alphabetically by the texts the items
 * `-i/--interactive` : enter [interactive mode](#interactive-mode)
 
 ---
@@ -183,6 +184,16 @@ If no `color` is specified, color will be found in `config.Tags.<text>`. If stil
 
 ---
 
+### Assign Due Date to Item
+
+`board due <item id> [<item id> ...]`
+
+* `-d/--date` : due date of the item in the format of `<digit><d|w>[<digit><d|w> ...]` (`d` for day and `w` for week) e.g. `1w4d` for 1 week 4 days (11 days)
+
+If no `date` is given, existing due date of this item will be removed.
+
+---
+
 ### Move Item
 
 `board move <item id> [<item id> ...] <name>`
@@ -203,7 +214,7 @@ If board does not exist, one will be created.
 
 This will spawn a subprocess to execute the command.
 
-*NOTE: Some commands may not work properly in subprocess, such as pipes.*
+***NOTE**: Some commands may not work properly in subprocess, such as pipes.*
 
 **TODO:** Execute command in a peseudo terminal.
 
@@ -227,7 +238,7 @@ This will spawn a subprocess to execute the command.
 
 `board import <path>`
 
-*NOTE:* This will overwrite all the current data of boards.
+***NOTE:** This will overwrite all the current data of boards.*
 
 The JSON file must be in a valid structure simillar to the following.
 
@@ -278,7 +289,7 @@ Use `board -i/--interactive` to enter interactive mode.
 
 Enter an empty line to view boards. Enter an empty line in prompt to abort operation.
 
-*NOTE: You can use quotations (`'` or `"`) to specify multiple board names or board names that contain spaces and item ids.*
+***NOTE**: You can use quotes (`'` or `"`) to specify multiple board names or board names that contain spaces and item ids.*
 
 ## Configurations
 
