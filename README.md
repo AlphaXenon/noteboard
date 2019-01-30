@@ -248,8 +248,9 @@ The JSON file must be in a valid structure simillar to the following.
         {
             "id": 1,
             "data": "item text",
-            "time": "<timestamp>",
+            "time": "<last modified timestamp>",
             "date": "<human readable date format>",
+            "due": "<due date timstamp>",
             "tick": false,
             "mark": false,
             "star": false,
@@ -293,7 +294,7 @@ Enter an empty line to view boards. Enter an empty line in prompt to abort opera
 
 ## Configurations
 
-**Path:** *~/noteboard.json*
+**Path:** *~/.noteboard.json*
 
 ### Default Configurations
 ```json
