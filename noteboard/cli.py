@@ -390,24 +390,31 @@ def display_board(date=False, sort=False, im=False):
             if item["star"] is True:
                 star = Fore.LIGHTYELLOW_EX + "⭑"
 
+            # Day difference
             days = time_diff(item["time"]).days
             if days <= 0:
                 day_text = ""
             else:
                 day_text = Fore.LIGHTBLACK_EX + "{}d".format(days)
 
+            # Due date
             due_text = ""
             duedate = ""
             if item["due"]:
                 duedate = to_datetime(item["due"])
                 due_days = time_diff(to_timestamp(duedate), reverse=True).days + 1  # + 1 because today is included
-
                 if due_days == 0:
                     text = Fore.RED + "today"
-                if due_days < 0:
-                    text = Fore.YELLOW + "{}d ago".format(due_days)
-                if due_days > 0:
+                elif due_days == 1:
+                    text = Fore.YELLOW + "tomorrow"
+                elif due_days == -1:
+                    text = Fore.BLUE + "yesterday"
+                elif due_days < 0:
+                    text = "{}d ago".format(due_days)
+                elif due_days > 0:
                     text = "{}d".format(due_days)
+                else:
+                    text = "0d"
                 due_text = "{}(due: {}{})".format(Fore.LIGHTBLACK_EX, text, Style.RESET_ALL + Fore.LIGHTBLACK_EX)
 
             # print text all together
