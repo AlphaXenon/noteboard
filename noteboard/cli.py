@@ -3,7 +3,6 @@ import sys
 import os
 import re
 import cmd
-import time
 import shlex
 import traceback
 import logging
@@ -12,7 +11,7 @@ from colorama import init, deinit, Fore, Back, Style
 from . import DEFAULT_BOARD, TAGS
 from .__version__ import __version__
 from .storage import Storage, NoteboardException
-from .utils import get_time, time_diff, add_date, to_timestamp, to_datetime
+from .utils import time_diff, add_date, to_timestamp, to_datetime
 
 # trying to import the optional prompt toolkit library
 PPT = True
