@@ -400,26 +400,32 @@ def display_board(date=False, sort=False, im=False):
             # Due date
             due_text = ""
             duedate = ""
+            color = ""
             if item["due"]:
                 duedate = to_datetime(item["due"])
                 due_days = time_diff(to_timestamp(duedate), reverse=True).days + 1  # + 1 because today is included
                 if due_days == 0:
-                    text = Fore.RED + "today"
+                    text = "today"
+                    color = Fore.RED
                 elif due_days == 1:
-                    text = Fore.YELLOW + "tomorrow"
+                    text = "tomorrow"
+                    color = Fore.YELLOW
                 elif due_days == -1:
-                    text = Fore.BLUE + "yesterday"
+                    text = "yesterday"
+                    color = Fore.BLUE
                 elif due_days < 0:
                     text = "{}d ago".format(due_days)
                 elif due_days > 0:
                     text = "{}d".format(due_days)
                 else:
                     text = "0d"
-                due_text = "{}(due: {}{})".format(Fore.LIGHTBLACK_EX, text, Style.RESET_ALL + Fore.LIGHTBLACK_EX)
+                due_text = "{}(due: {}{})".format(Fore.LIGHTBLACK_EX, color + text, Style.RESET_ALL + Fore.LIGHTBLACK_EX)
 
             # print text all together
             if date is True:
-                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + str(item["date"]), (Fore.LIGHTBLACK_EX + "(due: {})".format(duedate)) if item["due"] else "")
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text,
+                  (Fore.LIGHTBLACK_EX + "(due: {})".format(color + str(duedate) + Fore.LIGHTBLACK_EX)) if item["due"] else "",
+                  Fore.LIGHTBLACK_EX + str(item["date"]))
             else:
                 p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, due_text, day_text)
     print()
@@ -432,7 +438,7 @@ if PPT:
     # Define Interactive Mode related objects and functions here if prompt_toolkit is installed
 
     def action(func):
-        """A decorator functionn to catch exceptions of an action."""
+        """A decorator function to catch exceptions of an action."""
 
         def inner(*args, **kwargs):
             try:
