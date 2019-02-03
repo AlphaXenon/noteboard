@@ -413,7 +413,7 @@ def display_board(date=False, sort=False, im=False):
                     text = "yesterday"
                     color = Fore.BLUE
                 elif due_days < 0:
-                    text = "{}d ago".format(due_days)
+                    text = "{}d ago".format(due_days*-1)
                 elif due_days > 0:
                     text = "{}d".format(due_days)
                 else:
