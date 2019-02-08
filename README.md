@@ -16,35 +16,31 @@
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
 - [Features](#features)
-- [How the storage works](#how-the-storage-works)
+- [Behind the Board](#behind-the-board)
 - [Installation](#installation)
-  - [from source](#from-source)
-  - [via PyPI](#via-pypi)
-  - [Requirements](#requirements)
+  - [Source](#source)
+  - [PyPI](#pypi)
+  - [Dependencies](#dependencies)
 - [Usage](#usage)
-  - [View Boards](#view-boards)
-  - [Add Item](#add-item)
-  - [Remove Item](#remove-item)
-  - [Clear Board](#clear-board)
-  - [Tick / Mark / Star Item](#tick--mark--star-item)
-  - [Edit Item](#edit-item)
-  - [Tag Item](#tag-item)
-  - [Assign Due Date to Item](#assign-due-date-to-item)
-  - [Move Item](#move-item)
-  - [Rename Board](#rename-board)
-  - [Run Item as Command](#run-item-as-command)
-  - [Undo Previous Actions](#undo-previous-actions)
-    - [Actions that can be undone:](#actions-that-can-be-undone)
-  - [Import Boards from External JSON File](#import-boards-from-external-json-file)
-  - [Export Boards Data as JSON File](#export-boards-data-as-json-file)
+  - [View board](#view-board)
+  - [Add item](#add-item)
+  - [Remove item](#remove-item)
+  - [Clear board](#clear-board)
+  - [Tick / Mark / Star item](#tick--mark--star-item)
+  - [Edit item](#edit-item)
+  - [Tag item](#tag-item)
+  - [Assign due date to item](#assign-due-date-to-item)
+  - [Move item](#move-item)
+  - [Rename bard](#rename-board)
+  - [Run item as command](#run-item-as-command)
+  - [Undo previous actions](#undo-previous-actions)
+  - [Import board from external JSON file](#import-board-from-external-json-file)
+  - [Export board data as JSON file](#export-board-data-as-json-file)
 - [Interactive Mode](#interactive-mode)
 - [Configurations](#configurations)
-  - [Default Configurations](#default-configurations)
 - [Cautions](#cautions)
-  - [Tested On:](#tested-on)
 - [Contributing](#contributing)
 - [Credit](#credit)
-- [License](#license)
 
 ## Features
 
@@ -62,7 +58,7 @@
 * **Autocomplete & Autosuggestions in interactive mode**
 * **`Gzip` compressed storage** 📚
 
-## How the storage works
+## Behind the Board
 
 The main storage is powered by `shelve`, a Python standard library, which provides a lightweight & persistent file-based database system.
 Whereas the "buffer" (the one which allows you to undo previous actions), is backed by a `pickle` object.
@@ -72,7 +68,7 @@ This greatly reduces size of the file by more than 50%.
 
 ## Installation
 
-### from source
+### Source
 
 ```shell
 $ git clone https://github.com/AlphaXenon/noteboard.git
@@ -80,17 +76,15 @@ $ cd noteboard
 $ [sudo] python3 setup.py install
 ```
 
-### via PyPI
+### PyPI
 
 `pip3 install noteboard`
 
-### Requirements
+### Dependencies
 
-**Python 3.6 or above**
+1. [colorama](https://github.com/tartley/colorama)
 
-[colorama](https://github.com/tartley/colorama) --> for stylizing interface
-
-[prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit) [optional] --> for interactive mode prompts
+2. [prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit) [optional]
 
 ## Usage
 
@@ -122,9 +116,9 @@ Options:
 
 ---
 
-### View Boards
+### View board
 
-`board`
+`$ board`
 
 * `-d/--date` : show boards with the last modified date of each item in the format of `<weekday> <day> <month> <year>`. e.g. `Fri 25 Jan 2019`
 * `-s/--sort` : show boards with items on each board sorted alphabetically by the texts the items
@@ -132,9 +126,9 @@ Options:
 
 ---
 
-### Add Item
+### Add item
 
-`board add <item text>`
+`$ board add <item text>`
 
 * `-b/--board <name>` : add the item to this board
 
@@ -144,39 +138,39 @@ Board will be automatically initialized if one does not exist.
 
 ---
 
-### Remove Item
+### Remove item
 
-`board remove <item id> [<item id> ...]`
+`$ board remove <item id> [<item id> ...]`
 
 ---
 
-### Clear Board
+### Clear board
 
 Remove all items in the board.
 
-`board clear [<name> [<name> ...]]`
+`$ board clear [<name> [<name> ...]]`
 
 If no board `name` is specified, all boards will be cleared.
 
 ---
 
-### Tick / Mark / Star Item
+### Tick / Mark / Star item
 
-`board {tick, mark, star} <item id> [<item id> ...]`
+`$ board {tick, mark, star} <item id> [<item id> ...]`
 
 Run this command again on the same item to untick/unmark/unstar the item.
 
 ---
 
-### Edit Item
+### Edit item
 
-`board edit <item id> <new text>`
+`$ board edit <item id> <new text>`
 
 ---
 
-### Tag Item
+### Tag item
 
-`board tag <item id> [<item id> ...]`
+`$ board tag <item id> [<item id> ...]`
 
 * `-t/--text <tag text>` : tag the item with this text
 * `-c/--color <background color>` : set the background color `colorama.Back` of this tag (default: BLUE)
@@ -187,9 +181,9 @@ If no `color` is specified, color will be found in `config.Tags.<text>`. If stil
 
 ---
 
-### Assign Due Date to Item
+### Assign Due Date to item
 
-`board due <item id> [<item id> ...]`
+`$ board due <item id> [<item id> ...]`
 
 * `-d/--date` : due date of the item in the format of `<digit><d|w>[<digit><d|w> ...]` (`d` for day and `w` for week) e.g. `1w4d` for 1 week 4 days (11 days)
 
@@ -197,35 +191,33 @@ If no `date` is given, existing due date of this item will be removed.
 
 ---
 
-### Move Item
+### Move item
 
-`board move <item id> [<item id> ...] <name>`
+`$ board move <item id> [<item id> ...] <name>`
 
 If board does not exist, one will be created.
 
 ---
 
-### Rename Board
+### Rename board
 
-`board rename <name> <new name>`
+`$ board rename <name> <new name>`
 
 ---
 
-### Run Item as Command
+### Run item as command
 
-`board run <item id>`
+`$ board run <item id>`
 
 This will spawn a subprocess to execute the command.
 
 ***NOTE**: Some commands may not work properly in subprocess, such as pipes.*
 
-**TODO:** Execute command in a peseudo terminal.
-
 ---
 
-### Undo Previous Actions
+### Undo previous actions
 
-`board undo`
+`$ board undo`
 
 #### Actions that can be undone:
 
@@ -237,13 +229,13 @@ This will spawn a subprocess to execute the command.
 
 ---
 
-### Import Boards from External JSON File
+### Import board from external JSON file
 
-`board import <path>`
+`$ board import <path>`
 
 ***NOTE:** This will overwrite all the current data of boards.*
 
-The JSON file must be in a valid structure simillar to the following.
+The JSON file must be in a valid structure according to the following.
 
 ```json
 {
@@ -265,9 +257,9 @@ The JSON file must be in a valid structure simillar to the following.
 
 ---
 
-### Export Boards Data as JSON File
+### Export board data as JSON file
 
-`board export`
+`$ board export`
 
 * `-d/--dest <destination path>` : destination path of the exported file (directory)
 
@@ -279,7 +271,7 @@ The exported JSON file is named `board.json`.
 
 **➤ Made with [python-prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit)**
 
-Use `board -i/--interactive` to enter interactive mode.
+Use `$ board -i/--interactive` to enter interactive mode.
 
 **Commands:**
 
@@ -299,7 +291,6 @@ Enter an empty line to view boards. Enter an empty line in prompt to abort opera
 
 **Path:** *~/.noteboard.json*
 
-### Default Configurations
 ```json
 {
     "StoragePath": "~/.noteboard/",
@@ -315,7 +306,7 @@ Enter an empty line to view boards. Enter an empty line in prompt to abort opera
   * `default` : **[required]** this color is used if no color is specified when tagging item and no corresponding color of the tag text is found
   * `<tag text>` : add you custom tag colors by adding `<tag text>: <color>` to `Tags` attribute of the config
 
-***NOTE:** `color` must be in upper case and a valid attribute of `colorama.Back`. E.g. `LIGHTBLUE_EX` for light blue and `CYAN` for cyan.*
+***NOTE:** `color` must be upper cased and a valid attribute of `colorama.Back`. E.g. `LIGHTBLUE_EX` for light blue and `CYAN` for cyan.*
 
 ## Cautions
 
@@ -331,12 +322,10 @@ The program also uses symbols such as `⭑` and `✔` which also may not be disp
 
 ## Contributing
 
-Feel free to open issues for bug reports and feature requests ! (If you are reporting bugs, please include the log file `<StoragePath>/noteboard.log`).
+Feel free to open issues for bug reports and feature requests ! If you are reporting bugs, please include the log file `<StoragePath>/noteboard.log`.
 
 ## Credit
 
 This project is inspired by [@Klaus Sinani](https://github.com/klaussinani)'s [taskbook](https://github.com/klaussinani/taskbook).
 
-## License
-
-[MIT Licnese](./LICENSE.txt)
+<p align="center"><em>Made with ♥︎ by <a href="https://github.com/AlphaXenon">AlphaXenon</a><br>under <a href="./LICENSE.txt">MIT license</a></em></p>
