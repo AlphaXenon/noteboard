@@ -14,7 +14,9 @@
 **Noteboard** is a mini command-line tool which lets you manage and store your notes & tasks in a tidy and fancy way, right inside your terminal.
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Features](#features)
+- [How the storage works](#how-the-storage-works)
 - [Installation](#installation)
   - [from source](#from-source)
   - [via PyPI](#via-pypi)
@@ -27,15 +29,20 @@
   - [Tick / Mark / Star Item](#tick--mark--star-item)
   - [Edit Item](#edit-item)
   - [Tag Item](#tag-item)
+  - [Assign Due Date to Item](#assign-due-date-to-item)
   - [Move Item](#move-item)
   - [Rename Board](#rename-board)
   - [Run Item as Command](#run-item-as-command)
   - [Undo Previous Actions](#undo-previous-actions)
+    - [Actions that can be undone:](#actions-that-can-be-undone)
   - [Import Boards from External JSON File](#import-boards-from-external-json-file)
   - [Export Boards Data as JSON File](#export-boards-data-as-json-file)
 - [Interactive Mode](#interactive-mode)
 - [Configurations](#configurations)
+  - [Default Configurations](#default-configurations)
 - [Cautions](#cautions)
+  - [Tested On:](#tested-on)
+- [Contributing](#contributing)
 - [Credit](#credit)
 - [License](#license)
 
@@ -47,7 +54,7 @@
 * **Efficient and Effective** 💪🏻
 * Manage notes & tasks in multiple boards 🗒
 * **Run item as command inside terminal (subprocess)** 💨
-* **Tag item with color and text**
+* **Tag item with color and text** 🏷
 * Import boards from external JSON files & Export boards as JSON files
 * **Save & Load historic states**
 * **Undo multiple actions / changes**

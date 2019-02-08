@@ -29,6 +29,7 @@ Noteboard lets you manage your notes & tasks in a tidy and fancy way.
 * Efficient and Effective 💪🏻
 * Manage notes & tasks in multiple boards 🗒
 * Run item as command inside terminal (subprocess) 💨
+* Tag item with color and text 🏷
 * Import boards from external JSON files & Export boards as JSON files
 * Save & Load historic states
 * Undo multiple actions / changes
