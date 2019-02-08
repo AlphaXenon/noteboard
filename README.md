@@ -328,4 +328,5 @@ Feel free to open issues for bug reports and feature requests ! If you are repor
 
 This project is inspired by [@Klaus Sinani](https://github.com/klaussinani)'s [taskbook](https://github.com/klaussinani/taskbook).
 
+<br>
 <p align="center"><em>Made with ♥︎ by <a href="https://github.com/AlphaXenon">AlphaXenon</a><br>under <a href="./LICENSE.txt">MIT license</a></em></p>
