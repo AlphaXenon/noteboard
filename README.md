@@ -68,6 +68,8 @@ This greatly reduces size of the file by more than 50%.
 
 ## Installation
 
+Make sure you have Python 3.6 (or higher) installed in your machine.
+
 ### Source
 
 ```shell
@@ -78,7 +80,7 @@ $ [sudo] python3 setup.py install
 
 ### PyPI
 
-`pip3 install noteboard`
+`$ pip3 install noteboard`
 
 ### Dependencies
 
