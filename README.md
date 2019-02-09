@@ -2,7 +2,7 @@
 
 <p align="center"><em>A <a href="https://github.com/klaussinani/taskbook">taskbook</a> clone written in Python</em></p>
 
-<p align="center"><img src="./screenshot.png" width=70%></p>
+<p align="center"><img src="./screenshot.png?raw=true" width=70%></p>
 
 <p align="center">
   <a href="https://pypi.python.org/pypi/noteboard"><img src="https://img.shields.io/pypi/v/noteboard.svg"></a>
@@ -125,6 +125,8 @@ Options:
 * `-d/--date` : show boards with the last modified date of each item in the format of `<weekday> <day> <month> <year>`. e.g. `Fri 25 Jan 2019`
 * `-s/--sort` : show boards with items on each board sorted alphabetically by the texts the items
 * `-i/--interactive` : enter [interactive mode](#interactive-mode)
+
+***NOTE**: If `-d/--date` is specified, items of each board will be sorted by their date in from the most recent to the oldest.*
 
 ---
 
