@@ -75,7 +75,7 @@ Make sure you have Python 3.6 (or higher) installed in your machine.
 ```shell
 $ git clone https://github.com/AlphaXenon/noteboard.git
 $ cd noteboard
-$ [sudo] python3 setup.py install
+$ python3 setup.py install
 ```
 
 ### PyPI
