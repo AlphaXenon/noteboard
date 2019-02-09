@@ -344,6 +344,9 @@ def display_board(date=False, sort=False, im=False):
     if sort:
         for board in shelf:
             shelf[board] = sorted(shelf[board], key=lambda x: x["text"].lower())
+    elif date:
+        for board in shelf:
+            shelf[board] = sorted(shelf[board], key=lambda x: x["time"], reverse=True)
 
     # print initial help message
     if not shelf:
