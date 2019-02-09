@@ -429,7 +429,7 @@ def display_board(date=False, sort=False, im=False):
                   (Fore.LIGHTBLACK_EX + "(due: {})".format(color + str(duedate) + Fore.LIGHTBLACK_EX)) if item["due"] else "",
                   Fore.LIGHTBLACK_EX + str(item["date"]))
             else:
-                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, due_text, day_text)
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, day_text, due_text)
     print()
     print_footer()
     print_total()
