@@ -219,7 +219,7 @@ def tag(args):
         except AttributeError:
             print(Fore.RED + "[!] 'colorama.AnsiBack' object has no attribute '{}'".format(c.upper()))
             return
-        tag_text = tag_color + Style.DIM + "#" + Style.RESET_ALL + tag_color + text.replace(" ", "-") + " " + Back.RESET
+        tag_text = tag_color + " " + Fore.BLACK + text.replace(" ", "-") + Fore.RESET + " " + Back.RESET
     else:
         tag_text = ""
     with Storage() as s:
