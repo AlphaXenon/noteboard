@@ -361,10 +361,9 @@ class Storage:
 
     @staticmethod
     def _validate_json(data):
-        keys = [("id", int), ("text", str), ("time", int), ("date", str), ("due", int),
-                ("tick", bool), ("mark", bool), ("star", bool), ("tag", str)]
+        keys = ["id", "text", "time", "date", "due", "tick", "mark", "star", "tag"]
         for board in data:
-            if str(board) == "":
+            if board.strip() == "":
                 return False
             # Check for board type (list)
             if not isinstance(data[board], list):
@@ -374,15 +373,9 @@ class Storage:
                 if not isinstance(item, dict):
                     return False
                 # Check for existence of keys
-                for key, _ in keys:
+                for key in keys:
                     if key not in item.keys():
                         return False
-                # Check for value types
-                for key, value in item.items():
-                    for k, t in keys:
-                        if k == key:
-                            if not isinstance(value, t):
-                                return False
         return True
 
     def import_(self, path):

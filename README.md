@@ -246,7 +246,7 @@ The JSON file must be in a valid structure according to the following.
     "Board Name": [
         {
             "id": 1,
-            "data": "item text",
+            "text": "item text",
             "time": "<last modified timestamp>",
             "date": "<human readable date format>",
             "due": "<due date timstamp>",
