@@ -338,16 +338,7 @@ def export(args):
     print()
 
 
-def display_board(date=False, sort=False, im=False):
-    with Storage() as s:
-        shelf = dict(s.shelf)
-    if sort:
-        for board in shelf:
-            shelf[board] = sorted(shelf[board], key=lambda x: x["text"].lower())
-    elif date:
-        for board in shelf:
-            shelf[board] = sorted(shelf[board], key=lambda x: x["time"], reverse=True)
-
+def display_board(shelf, date=False, timeline=False, im=False):
     # print initial help message
     if not shelf:
         print()
@@ -424,12 +415,13 @@ def display_board(date=False, sort=False, im=False):
                 due_text = "{}(due: {}{})".format(Fore.LIGHTBLACK_EX, color + text, Style.RESET_ALL + Fore.LIGHTBLACK_EX)
 
             # print text all together
-            if date is True:
+            if date is True and timeline is False:
                 p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text,
                   (Fore.LIGHTBLACK_EX + "(due: {})".format(color + str(duedate) + Fore.LIGHTBLACK_EX)) if item["due"] else "",
                   Fore.LIGHTBLACK_EX + str(item["date"]))
             else:
-                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, day_text, due_text)
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"] + (Style.RESET_ALL + Fore.LIGHTBLUE_EX + "  @" + item["board"] if timeline else ""),
+                  tag_text, day_text, due_text)
     print()
     print_footer()
     print_total()
@@ -669,10 +661,14 @@ if PPT:
         def postcmd(self, stop, line):
             if line not in self.commands:
                 return
-            display_board(im=True)
+            with Storage() as s:
+                shelf = dict(s.shelf)
+            display_board(shelf, im=True)
 
         def emptyline(self):
-            display_board(im=True)
+            with Storage() as s:
+                shelf = dict(s.shelf)
+            display_board(shelf, im=True)
 
 
 def main():
@@ -704,6 +700,7 @@ Examples:
     parser.add_argument("--version", action="version", version="noteboard " + __version__)
     parser.add_argument("-d", "--date", help="show boards with the added date of every item", default=False, action="store_true", dest="d")
     parser.add_argument("-s", "--sort", help="show boards with items on each board sorted alphabetically", default=False, action="store_true", dest="s")
+    parser.add_argument("-t", "--timeline", help="show boards in timeline view, ignore the -d/--date option", default=False, action="store_true", dest="t")
     parser.add_argument("-i", "--interactive", help="enter interactive mode", default=False, action="store_true", dest="i")
     subparsers = parser.add_subparsers()
 
@@ -788,7 +785,25 @@ Examples:
         try:
             args.func
         except AttributeError:
-            display_board(date=args.d, sort=args.s)
+            with Storage() as s:
+                shelf = dict(s.shelf)
+            if args.s:
+                for board in shelf:
+                    shelf[board] = sorted(shelf[board], key=lambda x: x["text"].lower())
+            elif args.d:
+                for board in shelf:
+                    shelf[board] = sorted(shelf[board], key=lambda x: x["time"], reverse=True)
+            if args.t:
+                data = {}
+                for board in shelf:
+                    for item in shelf[board]:
+                        if item["date"]:
+                            if item["date"] not in data:
+                                data[item["date"]] = []
+                            item.update({"board": board})
+                            data[item["date"]].append(item)
+                shelf = data
+            display_board(shelf, date=args.d, timeline=args.t)
         else:
             try:
                 args.func(args)
