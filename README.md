@@ -113,6 +113,7 @@ Options:
     --version           show program's version number and exit
     -d, --date          show boards with the added date of every item
     -s, --sort          show boards with items on each board sorted alphabetically
+    -t, --timeline      show boards in timeline view, ignore the -d/--date option
     -i, --interactive   enter interactive mode
 ```
 
@@ -124,6 +125,7 @@ Options:
 
 * `-d/--date` : show boards with the last modified date of each item in the format of `<weekday> <day> <month> <year>`. e.g. `Fri 25 Jan 2019`
 * `-s/--sort` : show boards with items on each board sorted alphabetically by the texts the items
+* `-t, --timeline` : show boards in timeline view, ignore the `-d/--date` option
 * `-i/--interactive` : enter [interactive mode](#interactive-mode)
 
 ***NOTE**: If `-d/--date` is specified, items of each board will be sorted by their date in from the most recent to the oldest.*
