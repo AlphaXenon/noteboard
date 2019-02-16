@@ -70,8 +70,7 @@ This greatly reduces size of the file by more than 50%.
 
 Make sure you have Python 3.6 (or higher) installed in your machine.
 
-***NOTE:* You should remove all the data stored in `<StoragePath>` (default: `~/.noteboard/`) every time before you install a new version to
-avoid conflicts.**
+***NOTE:** You should remove all the data stored in `<StoragePath>` (default: `~/.noteboard/`) every time before you install a new version to avoid conflicts.*
 
 ### Source
 
