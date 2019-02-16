@@ -63,12 +63,15 @@
 The main storage is powered by `shelve`, a Python standard library, which provides a lightweight & persistent file-based database system.
 Whereas the "buffer" (the one which allows you to undo previous actions), is backed by a `pickle` object.
 
-Notably, the storage is compressed to `gzip` when it is not being accessed.
+Notably, the storage and the buffer are compressed to `gzip` when it is not being accessed.
 This greatly reduces size of the file by more than 50%. 
 
 ## Installation
 
 Make sure you have Python 3.6 (or higher) installed in your machine.
+
+***NOTE:* You should remove all the data stored in `<StoragePath>` (default: `~/.noteboard/`) every time before you install a new version to
+avoid conflicts.**
 
 ### Source
 
@@ -136,7 +139,7 @@ Options:
 
 `$ board add <item text>`
 
-* `-b/--board <name>` : add the item to this board
+* `-b/--board [<name>[<name> ...]]` : add the item to this board
 
 If no board `name` is specified, the item will be added to the default board.
 

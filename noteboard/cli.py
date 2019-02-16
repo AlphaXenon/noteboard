@@ -106,14 +106,15 @@ def run(args):
 def add(args):
     color = get_color("add")
     item = (args.item or "").strip()
-    board = args.board
+    boards = args.board or [None]
     if item == "":
         print(Fore.RED + "[!] Text must not be empty")
         return
     with Storage() as s:
-        i = s.add_item(board, item)
-    print()
-    p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or DEFAULT_BOARD))
+        print()
+        for board in boards:
+            i = s.add_item(board, item)
+            p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or DEFAULT_BOARD))
     print_total()
     print()
 
@@ -237,11 +238,11 @@ def due(args):
     color = get_color("due")
     items = args.item
     date = args.date or ""
+    if date and not re.match(r"\d+[d|w]", date):
+        print(Fore.RED + "[!] Invalid date pattern format")
+        return
     match = re.findall(r"\d+[d|w]", date)
     if date:
-        if not match:
-            print(Fore.RED + "[!] Invalid date pattern format")
-            return
         days = 0
         for m in match:
             if m[-1] == "d":
@@ -304,7 +305,7 @@ def undo(args):
         print()
         ask = input("[?] Continue (y/n) ? ")
         if ask != "y":
-            print(Fore.RED + "[!] Operation Aborted")
+            print(Fore.RED + "[!] Operation aborted")
             return
         s.load_state()
         print(color + "[^] Undone", "=>", get_color(state["action"]) + state["info"])
@@ -329,7 +330,7 @@ def export(args):
         print(Fore.YELLOW + "[!] File {} already exists".format(path))
         ask = input("[?] Overwrite (y/n) ? ")
         if ask != "y":
-            print(Fore.RED + "[!] Operation Aborted")
+            print(Fore.RED + "[!] Operation aborted")
             return
     with Storage() as s:
         full_path = s.export(path)
@@ -551,7 +552,7 @@ if PPT:
             elif answer == "all":
                 # clear all boards
                 if not confirm("[!] Clear all boards ?"):
-                    print(Fore.RED + "[!] Operation Aborted")
+                    print(Fore.RED + "[!] Operation aborted")
                     return
             # do clear boards
             with Storage() as s:
@@ -637,9 +638,9 @@ if PPT:
                 def validate(self, document):
                     text = document.text.strip()
                     if text:
-                        match = re.findall(r"\d+[d|w]", text)
-                        if len(match) == 0:
+                        if not re.match(r"\d+[d|w]", text):
                             raise ValidationError(message="Invalid date pattern format")
+
             # prompt
             print(Fore.LIGHTBLACK_EX + "Enter empty due date will unassign the current due dates of items.")
             due_date = prompt("[?] Due date: ", validator=DateValidator()).strip()
@@ -670,7 +671,7 @@ if PPT:
                 print(get_color("undo") + Style.BRIGHT + "Last Action:")
                 print("=>", get_color(state["action"]) + state["info"])
                 if not confirm("[!] Continue ?"):
-                    print(Fore.RED + "[!] Operation Aborted")
+                    print(Fore.RED + "[!] Operation aborted")
                     return
                 s.load_state()
 
@@ -689,7 +690,7 @@ if PPT:
             # prompt
             answer = prompt("[?] File path: ", validator=PathValidator()).strip()
             if not answer:
-                print(Fore.RED + "[!] Operation Aborted")
+                print(Fore.RED + "[!] Operation aborted")
                 return
             # do import
             with Storage() as s:
@@ -750,14 +751,14 @@ Examples:
 
     add_parser = subparsers.add_parser("add", help=get_color("add") + "[+] Add an item to a board" + Fore.RESET)
     add_parser.add_argument("item", help="the item you want to add", type=str, metavar="<item text>")
-    add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format(DEFAULT_BOARD), type=str, metavar="<name>")
+    add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format(DEFAULT_BOARD), type=str, metavar="<name>", nargs="*")
     add_parser.set_defaults(func=add)
 
     remove_parser = subparsers.add_parser("remove", help=get_color("remove") + "[-] Remove items" + Fore.RESET)
     remove_parser.add_argument("item", help="id of the item you want to remove", type=int, metavar="<item id>", nargs="+")
     remove_parser.set_defaults(func=remove)
 
-    clear_parser = subparsers.add_parser("clear", help=get_color("clear") + "[x] Clear all items on a/all boards" + Fore.RESET)
+    clear_parser = subparsers.add_parser("clear", help=get_color("clear") + "[x] Clear all items on a/all board(s)" + Fore.RESET)
     clear_parser.add_argument("board", help="clear this specific board", type=str, metavar="<name>", nargs="*")
     clear_parser.set_defaults(func=clear)
 
