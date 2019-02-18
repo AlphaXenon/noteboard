@@ -126,11 +126,11 @@ Options:
 `$ board`
 
 * `-d/--date` : show boards with the last modified date of each item in the format of `<weekday> <day> <month> <year>`. e.g. `Fri 25 Jan 2019`
-* `-s/--sort` : show boards with items on each board sorted alphabetically by the texts the items
+* `-s/--sort` : show boards with items on each board sorted alphabetically by the text of the items
 * `-t, --timeline` : show boards in timeline view, ignore the `-d/--date` option
 * `-i/--interactive` : enter [interactive mode](#interactive-mode)
 
-***NOTE**: If `-d/--date` is specified, items of each board will be sorted by their date in from the most recent to the oldest.*
+***NOTE**: If `-d/--date` is specified, items of each board will be sorted by their dates from the most recent to the oldest ones.*
 
 ---
 
@@ -293,7 +293,7 @@ Use `$ board -i/--interactive` to enter interactive mode.
 8. import
 9. quit
 
-Enter an empty line to view boards. Enter an empty line in prompt to abort operation.
+Enter an empty line to view boards. Enter an empty line in prompt to abort the operation.
 
 ***NOTE**: You can use quotes (`'` or `"`) to specify multiple board names or board names that contain spaces and item ids.*
 
