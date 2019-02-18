@@ -433,7 +433,7 @@ if PPT:
     # Define Interactive Mode related objects and functions here if prompt_toolkit is installed
 
     def action(func):
-        """A decorator function to catch exceptions of an action."""
+        """A decorator function for catching exceptions of an action."""
 
         def inner(*args, **kwargs):
             try:
@@ -475,7 +475,7 @@ if PPT:
 
         intro = "{0}[Interactive Mode]{1} Type help or ? to list all available commands.".format(Fore.LIGHTMAGENTA_EX, Fore.RESET)
         prompt = "{}@{}(noteboard){}➤{}".format(Fore.CYAN, Style.BRIGHT + Fore.YELLOW, Fore.RESET, Style.RESET_ALL) + " "
-        commands = ["add", "remove", "clear", "edit", "move", "due", "undo", "import", "quit"]
+        commands = ["add", "remove", "clear", "edit", "move", "undo", "import", "quit"]
 
         def do_help(self, arg):
             print(Fore.LIGHTCYAN_EX + "Commands:   ", "    ".join(self.commands))
@@ -616,50 +616,6 @@ if PPT:
             with Storage() as s:
                 for id in ids:
                     s.move_item(int(id), board)
-
-        @action
-        def do_due(self, arg):
-            with Storage() as s:
-                all_ids = s.ids
-            if not all_ids:
-                print(Fore.RED + "[!] No item to be assigned")
-                return
-            # completer
-            item_completer = WordCompleter([str(id) for id in all_ids])
-            # prompt
-            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
-            items = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
-            ids = shlex.split(items)
-            if not ids:
-                print(Fore.RED + "[!] Operation aborted")
-                return
-            # validator
-            class DateValidator(Validator):
-                def validate(self, document):
-                    text = document.text.strip()
-                    if text:
-                        if not re.match(r"\d+[d|w]", text):
-                            raise ValidationError(message="Invalid date pattern format")
-
-            # prompt
-            print(Fore.LIGHTBLACK_EX + "Enter empty due date will unassign the current due dates of items.")
-            due_date = prompt("[?] Due date: ", validator=DateValidator()).strip()
-            dates = re.findall(r"\d+[d|w]", due_date)
-            if due_date:
-                days = 0
-                for m in dates:
-                    if m[-1] == "d":
-                        days += int(m[:-1])
-                    elif m[-1] == "w":
-                        days += int(m[:-1]) * 7
-                duedate = add_date(days)
-                ts = to_timestamp(duedate)
-            else:
-                ts = None
-            # do assign due date
-            with Storage() as s:
-                for id in ids:
-                    s.modify_item(int(id), "due", ts)
 
         @action
         def do_undo(self, arg):
