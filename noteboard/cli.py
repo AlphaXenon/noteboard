@@ -393,11 +393,9 @@ def display_board(shelf, date=False, timeline=False, im=False):
 
             # Due date
             due_text = ""
-            duedate = ""
             color = ""
             if item["due"]:
-                duedate = to_datetime(item["due"])
-                due_days = time_diff(to_timestamp(duedate), reverse=True).days + 1  # + 1 because today is included
+                due_days = time_diff(item["due"], reverse=True).days + 1  # + 1 because today is included
                 if due_days == 0:
                     text = "today"
                     color = Fore.RED
@@ -411,15 +409,12 @@ def display_board(shelf, date=False, timeline=False, im=False):
                     text = "{}d ago".format(due_days*-1)
                 elif due_days > 0:
                     text = "{}d".format(due_days)
-                else:
-                    text = "0d"
                 due_text = "{}(due: {}{})".format(Fore.LIGHTBLACK_EX, color + text, Style.RESET_ALL + Fore.LIGHTBLACK_EX)
 
             # print text all together
             if date is True and timeline is False:
-                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text,
-                  (Fore.LIGHTBLACK_EX + "(due: {})".format(color + str(duedate) + Fore.LIGHTBLACK_EX)) if item["due"] else "",
-                  Fore.LIGHTBLACK_EX + str(item["date"]))
+                p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"], tag_text, Fore.LIGHTBLACK_EX + str(item["date"]),
+                  (Fore.LIGHTBLACK_EX + "(due: {})".format(color + str(to_datetime(item["due"])) + Fore.LIGHTBLACK_EX)) if item["due"] else "")
             else:
                 p(star, Fore.LIGHTMAGENTA_EX + str(item["id"]).rjust(2), mark, text_color + item["text"] + (Style.RESET_ALL + Fore.LIGHTBLUE_EX + "  @" + item["board"] if timeline else ""),
                   tag_text, day_text, due_text)

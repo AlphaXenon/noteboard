@@ -16,7 +16,7 @@ DEFAULT = {
 
 def get_time():
     date = datetime.date.today().strftime("%a %d %b %Y")  # str
-    timestamp = int(time.time())
+    timestamp = time.time()
     return date, timestamp
 
 
