@@ -288,10 +288,9 @@ Use `$ board -i/--interactive` to enter interactive mode.
 3. clear
 4. edit
 5. move
-6. due
-7. undo
-8. import
-9. quit
+6. undo
+7. import
+8. quit
 
 Enter an empty line to view boards. Enter an empty line in prompt to abort the operation.
 
