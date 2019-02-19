@@ -1,4 +1,4 @@
-<h1 align="center">$ noteboard</h1>
+<h1 align="center"><pre><code>$ noteboard</code></pre></h1>
 
 <p align="center"><em>A <a href="https://github.com/klaussinani/taskbook">taskbook</a> clone written in Python</em></p>
 
