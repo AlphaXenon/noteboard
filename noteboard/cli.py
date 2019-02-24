@@ -112,7 +112,7 @@ def add(args):
         for item in items:
             if not item:
                 print(Fore.RED + "[!] Text must not be empty")
-                continue
+                return
             i = s.add_item(board, item)
             p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or DEFAULT_BOARD))
     print_total()
