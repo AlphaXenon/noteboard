@@ -7,7 +7,7 @@ import os
 import logging
 
 from . import DIR_PATH, STATES_PATH, STORAGE_PATH, STORAGE_GZ_PATH, DEFAULT_BOARD
-from .utils import get_time
+from .utils import get_time, to_datetime
 
 logger = logging.getLogger("noteboard")
 
@@ -376,6 +376,9 @@ class Storage:
                 for key in keys:
                     if key not in item.keys():
                         return False
+                # Automatically make one from supplied timestamp if date is not supplied
+                if not item["date"] and item["time"]:
+                    item["date"] = to_datetime(float(item["time"])).strftime("%a %d %b %Y")
         return True
 
     def import_(self, path):
