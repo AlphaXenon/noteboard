@@ -252,7 +252,7 @@ The JSON file must be in a valid structure according to the following.
             "id": 1,
             "text": "item text",
             "time": "<last modified timestamp>",
-            "date": "<human readable date format>",
+            "date": "<human readable date format (auto manipulated by noteboard)>",
             "due": "<due date timstamp>",
             "tick": false,
             "mark": false,
