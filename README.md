@@ -136,9 +136,9 @@ Options:
 
 ### Add item
 
-`$ board add <item text>`
+`$ board add <item text> [<item text> ...]`
 
-* `-b/--board [<name>[<name> ...]]` : add the item to this board
+* `-b/--board <name>` : add the item to this board
 
 If no board `name` is specified, the item will be added to the default board.
 
