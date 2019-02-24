@@ -105,14 +105,14 @@ def run(args):
 
 def add(args):
     color = get_color("add")
-    item = (args.item or "").strip()
-    boards = args.board or [None]
-    if item == "":
-        print(Fore.RED + "[!] Text must not be empty")
-        return
+    items = args.item
+    board = args.board
     with Storage() as s:
         print()
-        for board in boards:
+        for item in items:
+            if not item:
+                print(Fore.RED + "[!] Text must not be empty")
+                continue
             i = s.add_item(board, item)
             p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or DEFAULT_BOARD))
     print_total()
@@ -482,18 +482,19 @@ if PPT:
             # completer
             board_completer = WordCompleter(all_boards)
             # prompt
-            item = prompt("[?] Item text: ").strip()
-            if not item:
+            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify item text that contain spaces or specify multiple items.")
+            items = prompt("[?] Item text: ").strip()
+            items = shlex.split(items)
+            if not items:
                 print(Fore.RED + "[!] Operation aborted")
                 return
-            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
-            boards = prompt("[?] Board: ", completer=board_completer, complete_while_typing=True).strip()
-            boards = shlex.split(boards)
-            if not boards:
+
+            board = prompt("[?] Board: ", completer=board_completer, complete_while_typing=True).strip()
+            if not board:
                 print(Fore.RED + "[!] Operation aborted")
             # do add item
             with Storage() as s:
-                for board in boards:
+                for item in items:
                     s.add_item(board, item)
 
         @action
@@ -523,6 +524,7 @@ if PPT:
             if not all_boards:
                 print(Fore.RED + "[!] No board to be cleared")
                 return
+            all_boards_quotes = ['"' + b + '"' for b in all_boards]  # to make autocompletion more convenient
             # validator for validating board existence
             class BoardValidator(Validator):
                 def validate(self, document):
@@ -537,7 +539,7 @@ if PPT:
                             if board not in all_boards:
                                 raise ValidationError(message="Board '{}' does not exist".format(board))
             # completer
-            board_completer = WordCompleter(all_boards)
+            board_completer = WordCompleter(all_boards_quotes)
             # prompt
             print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
             answer = prompt("[?] Board (`all` to clear all boards): ", completer=board_completer, validator=BoardValidator(), complete_while_typing=True).strip()
@@ -701,8 +703,8 @@ Examples:
     subparsers = parser.add_subparsers()
 
     add_parser = subparsers.add_parser("add", help=get_color("add") + "[+] Add an item to a board" + Fore.RESET)
-    add_parser.add_argument("item", help="the item you want to add", type=str, metavar="<item text>")
-    add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format(DEFAULT_BOARD), type=str, metavar="<name>", nargs="*")
+    add_parser.add_argument("item", help="the item you want to add", type=str, metavar="<item text>", nargs="+")
+    add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format(DEFAULT_BOARD), type=str, metavar="<name>")
     add_parser.set_defaults(func=add)
 
     remove_parser = subparsers.add_parser("remove", help=get_color("remove") + "[-] Remove items" + Fore.RESET)
