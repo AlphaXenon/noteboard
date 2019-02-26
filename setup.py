@@ -56,6 +56,7 @@ setup(
     include_package_data=True,
     packages=find_packages(),
     license="MIT",
+    keywords=["cli", "todo", "task", "note", "board", "gzip", "interactive", "taskbook"],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
