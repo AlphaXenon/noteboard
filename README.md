@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://pypi.python.org/pypi/noteboard"><img src="https://img.shields.io/pypi/v/noteboard.svg"></a>
   <a href="https://pypi.python.org/pypi/noteboard"><img src="https://img.shields.io/pypi/dm/noteboard.svg"></a>
-  <a href="./LICENSE.txt"><img src="https://img.shields.io/github/license/AlphaXenon/noteboard.svg"></a>
+  <a href="./LICENSE.txt"><img src="https://img.shields.io/github/license/a1phat0ny/noteboard.svg"></a>
 </p>
 
 
