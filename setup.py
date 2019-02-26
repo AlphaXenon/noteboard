@@ -6,9 +6,9 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Package Meta-Data
 NAME = "noteboard"
 DESCRIPTION = "Manage your notes & tasks in a tidy and fancy way."
-URL = "https://github.com/AlphaXenon/noteboard"
+URL = "https://github.com/a1phat0ny/noteboard"
 EMAIL = "tony.chan2342@gmail.com"
-AUTHOR = "AlphaXenon"
+AUTHOR = "a1phat0ny"
 REQUIRES_PYTHON = ">=3.6.0"
 REQUIRED = [
     "colorama"

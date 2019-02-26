@@ -685,7 +685,7 @@ Examples:
   $ board import ~/Documents/board.json
   $ board export ~/Documents/save.json
 
-{0}Made with {1}\u2764{2} by AlphaXenon{3} (https://github.com/AlphaXenon/noteboard)
+{0}Made with {1}\u2764{2} by a1phat0ny{3} (https://github.com/a1phat0ny/noteboard)
 """.format(Style.BRIGHT, Fore.RED, Fore.RESET, Style.RESET_ALL)
     parser = argparse.ArgumentParser(
         prog="board",
