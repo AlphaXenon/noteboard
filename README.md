@@ -75,7 +75,7 @@ Make sure you have Python 3.6 (or higher) installed in your machine.
 ### Source
 
 ```shell
-$ git clone https://github.com/AlphaXenon/noteboard.git
+$ git clone https://github.com/a1phat0ny/noteboard.git
 $ cd noteboard
 $ python3 setup.py install
 ```
@@ -338,4 +338,4 @@ Feel free to open issues for bug reports and feature requests ! If you are repor
 This project is inspired by [@Klaus Sinani](https://github.com/klaussinani)'s [taskbook](https://github.com/klaussinani/taskbook).
 
 <br>
-<p align="center"><em>Made with ♥︎ by <a href="https://github.com/AlphaXenon">AlphaXenon</a><br>under <a href="./LICENSE.txt">MIT license</a></em></p>
+<p align="center"><em>Made with ♥︎ by <a href="https://github.com/a1phat0ny">a1phat0ny</a><br>under <a href="./LICENSE.txt">MIT license</a></em></p>
