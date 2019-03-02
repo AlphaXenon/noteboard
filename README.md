@@ -1,4 +1,4 @@
-<h1 align="center"><pre><code>$ noteboard</code></pre></h1>
+<h1 align="center">noteboard</code></pre></h1>
 
 <p align="center"><em>A <a href="https://github.com/klaussinani/taskbook">taskbook</a> clone written in Python</em></p>
 
@@ -11,7 +11,7 @@
 </p>
 
 
-**Noteboard** is a mini command-line tool which lets you manage and store your notes & tasks in a tidy and fancy way, right inside your terminal.
+**noteboard** is a mini command-line tool which lets you manage and store your notes & tasks in a tidy and fancy way, right inside your terminal.
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -46,17 +46,15 @@
 
 * Fancy interface ✨
 * Simple & Easy to use 🚀
-* **Fast as lightning** ⚡️
-* **Efficient and Effective** 💪🏻
+* Fast as lightning ⚡️
 * Manage notes & tasks in multiple boards 🗒
-* **Run item as command inside terminal (subprocess)** 💨
-* **Tag item with color and text** 🏷
+* Run item as command inside terminal (subprocess) 💨
+* Tag item with color and text 🏷
 * Import boards from external JSON files & Export boards as JSON files
-* **Save & Load historic states**
-* **Undo multiple actions / changes**
-* **Interactive mode for dynamic operations**
-* **Autocomplete & Autosuggestions in interactive mode**
-* **`Gzip` compressed storage** 📚
+* Undo multiple actions / changes
+* Interactive mode for dynamic operations with auto-complete and auto-suggestions
+* `Gzip` compressed storage 📚
+* Configurable through `~/.noteboard.json`
 
 ## Behind the Board
 
@@ -70,7 +68,7 @@ This greatly reduces size of the file by more than 50%.
 
 Make sure you have Python 3.6 (or higher) installed in your machine.
 
-***NOTE:** You should remove all the data stored in `<StoragePath>` (default: `~/.noteboard/`) every time before you install a new version to avoid conflicts.*
+***NOTE:** You should remove all the data stored in `<StoragePath>` (default: `~/.noteboard/`) every time you install a new version to avoid conflicts.*
 
 ### Source
 
@@ -338,4 +336,4 @@ Feel free to open issues for bug reports and feature requests ! If you are repor
 This project is inspired by [@Klaus Sinani](https://github.com/klaussinani)'s [taskbook](https://github.com/klaussinani/taskbook).
 
 <br>
-<p align="center"><em>Made with ♥︎ by <a href="https://github.com/a1phat0ny">a1phat0ny</a><br>under <a href="./LICENSE.txt">MIT license</a></em></p>
+<p align="center">Made with ❤️︎ by <a href="https://github.com/a1phat0ny">a1phat0ny</a><br>under <a href="./LICENSE.txt">MIT license</a></p>
