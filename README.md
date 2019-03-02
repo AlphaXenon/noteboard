@@ -8,6 +8,7 @@
   <a href="https://pypi.python.org/pypi/noteboard"><img src="https://img.shields.io/pypi/v/noteboard.svg"></a>
   <a href="https://pypi.python.org/pypi/noteboard"><img src="https://img.shields.io/pypi/dm/noteboard.svg"></a>
   <a href="./LICENSE.txt"><img src="https://img.shields.io/github/license/a1phat0ny/noteboard.svg"></a>
+  <a href="https://github.com/a1phat0ny"><img src="https://img.shields.io/badge/dev-a1phat0ny-orange.svg?style=flat-square&logo=github"></a>
 </p>
 
 
