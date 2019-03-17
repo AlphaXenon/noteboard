@@ -162,18 +162,18 @@ class Storage:
         return list(self.shelf.keys())
 
     @property
-    def ids(self):
-        """Get all existing item ids."""
-        results = []
+    def items(self):
+        """Get all existing items with ids and texts."""
+        results = {}
         for board in self.shelf:
             for item in self.shelf[board]:
-                results.append(item["id"])
-        return sorted(results)
+                results[item["id"]] = item["text"]
+        return results
 
     @property
     def total(self):
         """Get the total amount of items in all boards."""
-        return len(self.ids)
+        return len(self.items)
 
     def get_item(self, id):
         """Get the item with the give ID. ItemNotFoundError will be raised if nothing found."""
@@ -234,7 +234,7 @@ class Storage:
         """
         current_id = 1
         # get all existing ids
-        ids = self.ids
+        ids = list(sorted(self.items.keys()))
         if ids:
             current_id = ids[-1] + 1
         # board name
@@ -284,7 +284,7 @@ class Storage:
             int -- total amount of items removed
         """
         if not board:
-            amt = len(self.ids)
+            amt = len(self.items)
             # save
             self._save_state("Clear {} items on all boards".format(amt), "clear")
             # remove all items of all boards

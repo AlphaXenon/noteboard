@@ -450,8 +450,8 @@ if PPT:
 
         class ItemValidator(Validator):
 
-            def __init__(self, all_ids):
-                self.all_ids = all_ids
+            def __init__(self, all_items):
+                self.all_items = all_items
                 Validator.__init__(self)
 
             def validate(self, document):
@@ -465,7 +465,7 @@ if PPT:
                     for item in items:
                         if not item.isdigit():
                             raise ValidationError(message="Input contains non-numeric characters")
-                        if int(item) not in self.all_ids:
+                        if item not in self.all_items:
                             raise ValidationError(message="Item '{}' does not exist".format(item))
 
         intro = "{0}[Interactive Mode]{1} Type help or ? to list all available commands.".format(Fore.LIGHTMAGENTA_EX, Fore.RESET)
@@ -480,7 +480,7 @@ if PPT:
             with Storage() as s:
                 all_boards = s.boards
             # completer
-            board_completer = WordCompleter(all_boards)
+            board_completer = WordCompleter(all_boards, sentence=True)
             # prompt
             print(Fore.LIGHTBLACK_EX + "You can use quotations to specify item text that contain spaces or specify multiple items.")
             items = prompt("[?] Item text: ").strip()
@@ -501,14 +501,17 @@ if PPT:
         @action
         def do_remove(self, arg):
             with Storage() as s:
-                all_ids = s.ids
-            if not all_ids:
+                items = s.items
+            if not items:
                 print(Fore.RED + "[!] No item to be removed")
                 return
+            all_items = {}
+            for item in items:
+                all_items[str(item)] = items[item]
             # completer
-            item_completer = WordCompleter([str(id) for id in all_ids])
+            item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
             print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
-            answer = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
+            answer = prompt("[?] Item ID: ", completer=item_completer, validator=self.ItemValidator(all_items), complete_while_typing=True).strip()
             ids = shlex.split(answer)
             if not ids:
                 print(Fore.RED + "[!] Operation aborted")
@@ -525,7 +528,7 @@ if PPT:
             if not all_boards:
                 print(Fore.RED + "[!] No board to be cleared")
                 return
-            all_boards_quotes = ['"' + b + '"' for b in all_boards]  # to make autocompletion more convenient
+            all_boards_quotes = ['"' + b + '"' if " " in b else b for b in all_boards]  # to make autocompletion more convenient
             # validator for validating board existence
             class BoardValidator(Validator):
                 def validate(self, document):
@@ -564,15 +567,18 @@ if PPT:
         @action
         def do_edit(self, arg):
             with Storage() as s:
-                all_ids = s.ids
-            if not all_ids:
+                items = s.items
+            if not items:
                 print(Fore.RED + "[!] No item to be removed")
                 return
+            all_items = {}
+            for item in items:
+                all_items[str(item)] = items[item]
             # completer
-            item_completer = WordCompleter([str(id) for id in all_ids])
+            item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
             # prompt
-            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
-            items = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
+            print(Fore.LIGHTBLACK_EX + "You can use specify multiple items.")
+            items = prompt("[?] Item ID: ", completer=item_completer, validator=self.ItemValidator(all_items), complete_while_typing=True).strip()
             ids = shlex.split(items)
             if not ids:
                 print(Fore.RED + "[!] Operation aborted")
@@ -589,16 +595,19 @@ if PPT:
         @action
         def do_move(self, arg):
             with Storage() as s:
-                all_ids = s.ids
+                items = s.items
                 all_boards = s.boards
-            if not all_ids:
+            if not items:
                 print(Fore.RED + "[!] No item to be moved")
                 return
+            all_items = {}
+            for item in items:
+                all_items[str(item)] = items[item]
             # completer
-            item_completer = WordCompleter([str(id) for id in all_ids])
+            item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
             # prompt
             print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
-            items = prompt("[?] Item id: ", completer=item_completer, validator=self.ItemValidator(all_ids), complete_while_typing=True).strip()
+            items = prompt("[?] Item ID: ", completer=item_completer, validator=self.ItemValidator(all_items), complete_while_typing=True).strip()
             ids = shlex.split(items)
             if not ids:
                 print(Fore.RED + "[!] Operation aborted")
@@ -654,7 +663,7 @@ if PPT:
             sys.exit(0)
 
         def default(self, line):
-            print(Style.BRIGHT + Fore.RED + "ERROR:", "Invalid command '{}'".format(line))
+            print(Style.BRIGHT + Fore.RED + "ERROR", "Invalid command '{}'".format(line))
             return line
 
         def postcmd(self, stop, line):
