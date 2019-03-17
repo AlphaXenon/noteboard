@@ -63,7 +63,7 @@ The main storage is powered by `shelve`, a Python standard library, which provid
 Whereas the "buffer" (the one which allows you to undo previous actions), is backed by a `pickle` object.
 
 Notably, the storage and the buffer are compressed to `gzip` when it is not being accessed.
-This greatly reduces size of the file by more than 50%. 
+This greatly reduces the sizes of the files by more than 50%. 
 
 ## Installation
 
@@ -188,7 +188,7 @@ If no `color` is specified, color will be found in `config.Tags.<text>`. If stil
 
 ---
 
-### Assign Due Date to item
+### Assign due date to item
 
 `$ board due <item id> [<item id> ...]`
 
@@ -291,7 +291,7 @@ Use `$ board -i/--interactive` to enter interactive mode.
 7. import
 8. quit
 
-Enter an empty line to view boards. Enter an empty line in prompt to abort the operation.
+Enter an empty command to view boards. Enter an empty line in prompt to abort the operating action.
 
 ***NOTE**: You can use quotes (`'` or `"`) to specify multiple board names or board names that contain spaces and item ids.*
 
@@ -320,13 +320,7 @@ Enter an empty line to view boards. Enter an empty line in prompt to abort the o
 
 Some terminal emulators may not support dimmed (`Style.DIM`) & underlined (`\033[4m`) text.
 
-The program also uses symbols such as `⭑` and `✔` which also may not be displayed properly in some terminal emulators and Windows cmd.
-
-### Tested On:
-
-**Shells:** bash, zsh
-
-**Terminal Emulators:** iTerm2
+The program also uses symbols such as `⭑` and `✔` which also may not be displayed properly if a wrong encodings is set.
 
 ## Contributing
 
