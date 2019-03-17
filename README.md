@@ -312,7 +312,7 @@ Enter an empty command to view boards. Enter an empty line in prompt to abort th
 * `DefaultBoardName` : default board name, is used when no board is specified when adding item
 * `Tags` : colors preset of tags
   * `default` : **[required]** this color is used if no color is specified when tagging item and no corresponding color of the tag text is found
-  * `<tag text>` : add you custom tag colors by adding `<tag text>: <color>` to `Tags` attribute of the config
+  * `<tag text>` : add your custom tag colors by adding `<tag text>: <color>` to `Tags` attribute of the config
 
 ***NOTE:** `color` must be upper cased and a valid attribute of `colorama.Back`. E.g. `LIGHTBLUE_EX` for light blue and `CYAN` for cyan.*
 

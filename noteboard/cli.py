@@ -492,6 +492,7 @@ if PPT:
             board = prompt("[?] Board: ", completer=board_completer, complete_while_typing=True).strip()
             if not board:
                 print(Fore.RED + "[!] Operation aborted")
+                return
             # do add item
             with Storage() as s:
                 for item in items:
