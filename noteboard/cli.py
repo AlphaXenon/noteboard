@@ -510,7 +510,7 @@ if PPT:
                 all_items[str(item)] = items[item]
             # completer
             item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
-            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
+            print(Fore.LIGHTBLACK_EX + "You can specify multiple items.")
             answer = prompt("[?] Item ID: ", completer=item_completer, validator=self.ItemValidator(all_items), complete_while_typing=True).strip()
             ids = shlex.split(answer)
             if not ids:
@@ -577,7 +577,7 @@ if PPT:
             # completer
             item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
             # prompt
-            print(Fore.LIGHTBLACK_EX + "You can use specify multiple items.")
+            print(Fore.LIGHTBLACK_EX + "You can specify multiple items.")
             items = prompt("[?] Item ID: ", completer=item_completer, validator=self.ItemValidator(all_items), complete_while_typing=True).strip()
             ids = shlex.split(items)
             if not ids:
@@ -606,7 +606,7 @@ if PPT:
             # completer
             item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
             # prompt
-            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify multiple items.")
+            print(Fore.LIGHTBLACK_EX + "You can specify multiple items.")
             items = prompt("[?] Item ID: ", completer=item_completer, validator=self.ItemValidator(all_items), complete_while_typing=True).strip()
             ids = shlex.split(items)
             if not ids:
