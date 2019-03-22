@@ -1,4 +1,4 @@
-<h1 align="center">noteboard</code></pre></h1>
+<h1 align="center">noteboard</h1>
 
 <p align="center"><em>A <a href="https://github.com/klaussinani/taskbook">taskbook</a> clone written in Python</em></p>
 
@@ -15,7 +15,6 @@
 **noteboard** is a mini command-line tool which lets you manage and store your notes & tasks in a tidy and fancy way, right inside your terminal.
 
 ## Table of Contents
-- [Table of Contents](#table-of-contents)
 - [Features](#features)
 - [Behind the Board](#behind-the-board)
 - [Installation](#installation)
