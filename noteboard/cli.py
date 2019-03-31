@@ -6,7 +6,7 @@ import cmd
 import shlex
 import traceback
 import logging
-from colorama import init, deinit, Fore, Back, Style
+from colorama import init, deinit, Fore, Style
 
 from . import DEFAULT_BOARD, TAGS
 from .__version__ import __version__
