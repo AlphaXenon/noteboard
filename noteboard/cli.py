@@ -210,17 +210,17 @@ def tag(args):
     color = get_color("tag")
     items = args.item
     text = (args.text or "").strip()
-    c = args.color or TAGS.get(text, "") or TAGS["default"]
     if len(text) > 10:
         print(Fore.RED + "[!] Tag text length should not be longer than 10 characters")
         return
     if text != "":
+        c = TAGS.get(text, "") or TAGS["default"]
         try:
-            tag_color = eval("Back." + c.upper())
+            tag_color = eval("Fore." + c.upper())  # validate coloraama attribute supplied in config
         except AttributeError:
             print(Fore.RED + "[!] 'colorama.AnsiBack' object has no attribute '{}'".format(c.upper()))
             return
-        tag_text = tag_color + " " + Fore.BLACK + text.replace(" ", "-") + Fore.RESET + " " + Back.RESET
+        tag_text = text.replace(" ", "-")
     else:
         tag_text = ""
     with Storage() as s:
@@ -228,7 +228,7 @@ def tag(args):
         for item in items:
             i = s.modify_item(item, "tag", tag_text)
             if text != "":
-                p(color + "[#] Tagged item", Style.BRIGHT + str(i["id"]), color + "with", tag_text)
+                p(color + "[#] Tagged item", Style.BRIGHT + str(i["id"]), color + "with", tag_color + tag_text)
             else:
                 p(color + "[#] Untagged item", Style.BRIGHT + str(i["id"]))
     print()
@@ -377,7 +377,9 @@ def display_board(shelf, date=False, timeline=False, im=False):
 
             # tag
             if item["tag"]:
-                tag_text = " " + item["tag"] + " "
+                c = TAGS.get(item["tag"], "") or TAGS["default"]
+                tag_color = eval("Fore." + c.upper())
+                tag_text = " " + tag_color + "(" + item["tag"] + ")"
 
             # Star
             star = " "
@@ -745,7 +747,6 @@ Examples:
     tag_parser = subparsers.add_parser("tag", help=get_color("tag") + "[#] Tag an item with text" + Fore.RESET)
     tag_parser.add_argument("item", help="id of the item you want to tag", type=int, metavar="<item id>", nargs="+")
     tag_parser.add_argument("-t", "--text", help="text of tag (do not specify this argument to untag)", type=str, metavar="<tag text>")
-    tag_parser.add_argument("-c", "--color", help="set the background color of the tag (default: {})".format(TAGS["default"]), type=str, metavar="<background color>")
     tag_parser.set_defaults(func=tag)
 
     due_parser = subparsers.add_parser("due", help=get_color("due") + "[:] Assign a due date to an item" + Fore.RESET)
