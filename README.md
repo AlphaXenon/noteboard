@@ -179,11 +179,10 @@ Run this command again on the same item to untick/unmark/unstar the item.
 `$ board tag <item id> [<item id> ...]`
 
 * `-t/--text <tag text>` : tag the item with this text
-* `-c/--color <background color>` : set the background color `colorama.Back` of this tag (default: BLUE)
 
 If no `text` is given, existing tag of this item will be removed.
 
-If no `color` is specified, color will be found in `config.Tags.<text>`. If still no color is found, the default color `config.Tags.default` will be used.
+Color of the tag text is specified in [configurations](#configurations).
 
 ---
 
@@ -255,7 +254,7 @@ The JSON file must be in a valid structure according to the following.
             "tick": false,
             "mark": false,
             "star": false,
-            "tag": "<tag text with ANSI code (auto manipulated by noteboard)>"
+            "tag": "<tag text>"
         }
     ]
 }
@@ -310,10 +309,10 @@ Enter an empty command to view boards. Enter an empty line in prompt to abort th
 * `StoragePath` : path to the custom storage path (where the data and log file are stored)
 * `DefaultBoardName` : default board name, is used when no board is specified when adding item
 * `Tags` : colors preset of tags
-  * `default` : **[required]** this color is used if no color is specified when tagging item and no corresponding color of the tag text is found
-  * `<tag text>` : add your custom tag colors by adding `<tag text>: <color>` to `Tags` attribute of the config
+  * `default` : **[required]** this color is used if no corresponding color of the tag text is found in config
+  * `<tag text>` : specify your custom tag colors by adding `<tag text>: <color>` to `Tags` attribute of the config
 
-***NOTE:** `color` must be upper cased and a valid attribute of `colorama.Back`. E.g. `LIGHTBLUE_EX` for light blue and `CYAN` for cyan.*
+***NOTE:** `color` must be upper cased and a valid attribute of `colorama.Fore`. E.g. `LIGHTBLUE_EX` for light blue and `CYAN` for cyan.*
 
 ## Cautions
 
