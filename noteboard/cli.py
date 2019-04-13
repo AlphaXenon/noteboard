@@ -2,43 +2,36 @@ import argparse
 import sys
 import os
 import re
-import cmd
 import shlex
-import traceback
 import logging
-from colorama import init, deinit, Fore, Style
+from colorama import init, deinit, Fore, Back, Style
 
 from . import DEFAULT_BOARD, TAGS
 from .__version__ import __version__
-from .storage import Storage, NoteboardException
+from .storage import Storage, History, NoteboardException
 from .utils import time_diff, add_date, to_timestamp, to_datetime
-
-# trying to import the optional prompt toolkit library
-PPT = True
-try:
-    from prompt_toolkit import prompt
-    from prompt_toolkit.shortcuts import confirm
-    from prompt_toolkit.styles import Style as PromptStyle
-    from prompt_toolkit.completion import WordCompleter
-    from prompt_toolkit.validation import Validator, ValidationError
-except ImportError:
-    PPT = False
 
 logger = logging.getLogger("noteboard")
 COLORS = {
-    "add": Fore.GREEN,
-    "remove": Fore.LIGHTMAGENTA_EX,
-    "clear": Fore.RED,
-    "run": Fore.BLUE,
-    "tick": Fore.GREEN,
-    "mark": Fore.YELLOW,
-    "star": Fore.YELLOW,
-    "tag": Fore.LIGHTBLUE_EX,
-    "due": Fore.LIGHTBLUE_EX,
-    "edit": Fore.LIGHTCYAN_EX,
-    "move": Fore.LIGHTCYAN_EX,
-    "rename": Fore.LIGHTCYAN_EX,
-    "undo": Fore.LIGHTCYAN_EX,
+    "add": "GREEN",
+    "remove": "LIGHTMAGENTA_EX",
+    "clear": "RED",
+    "run": "BLUE",
+
+    "tick": "GREEN",
+    "mark": "YELLOW",
+    "star": "YELLOW",
+    "tag": "LIGHTBLUE_EX",
+    "untick": "GREEN",
+    "unmark": "YELLOW",
+    "unstar": "YELLOW",
+    "untag": "LIGHTBLUE_EX",
+
+    "due": "LIGHTBLUE_EX",
+    "edit": "LIGHTCYAN_EX",
+    "move": "LIGHTCYAN_EX",
+    "rename": "LIGHTCYAN_EX",
+    "undo": "LIGHTCYAN_EX",
     "import": "",
     "export": "",
 }
@@ -52,8 +45,18 @@ def error_print(text):
     print(Style.BRIGHT + Fore.LIGHTRED_EX + "✘ " + text)
 
 
-def get_color(action):
-    return COLORS.get(action, "")
+def get_fore_color(action):
+    color = COLORS.get(action, "")
+    if color == "":
+        return ""
+    return eval("Fore." + color)
+
+
+def get_back_color(action):
+    color = COLORS.get(action, "")
+    if color == "":
+        return Back.LIGHTWHITE_EX
+    return eval("Back." + color)
 
 
 def print_footer():
@@ -80,7 +83,7 @@ def print_total():
 
 
 def run(args):
-    color = get_color("run")
+    color = get_fore_color("run")
     item = args.item
     with Storage() as s:
         i = s.get_item(item)
@@ -107,7 +110,7 @@ def run(args):
 
 
 def add(args):
-    color = get_color("add")
+    color = get_fore_color("add")
     items = args.item
     board = args.board
     with Storage() as s:
@@ -118,24 +121,32 @@ def add(args):
                 return
             i = s.add_item(board, item)
             p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or DEFAULT_BOARD))
+            History.write(
+                "add",
+                "added item {} [{}] to board [{}]".format(str(i["id"]), item, (board or DEFAULT_BOARD)),
+            )
     print_total()
     print()
 
 
 def remove(args):
-    color = get_color("remove")
+    color = get_fore_color("remove")
     items = args.item
     with Storage() as s:
         print()
         for item in items:
             i, board = s.remove_item(item)
             p(color + "[-] Removed item", Style.BRIGHT + str(i["id"]), color + "on", Style.BRIGHT + board)
+            History.write(
+                "remove",
+                "removed item {} [{}] from board [{}]".format(str(i["id"]), item, (board or DEFAULT_BOARD)),
+            )
     print_total()
     print()
 
 
 def clear(args):
-    color = get_color("clear")
+    color = get_fore_color("clear")
     boards = args.board
     with Storage() as s:
         print()
@@ -143,15 +154,23 @@ def clear(args):
             for board in boards:
                 amt = s.clear_board(board)
                 p(color + "[x] Cleared", Style.DIM + str(amt) + Style.RESET_ALL, color + "items on", Style.BRIGHT + board)
+                History.write(
+                    "clear",
+                    "cleared {} items on board [{}]".format(str(amt), board),
+                )
         else:
             amt = s.clear_board(None)
             p(color + "[x] Cleared", Style.DIM + str(amt) + Style.RESET_ALL, color + "items on all boards")
+            History.write(
+                "clear",
+                "cleared {} items on all board".format(str(amt)),
+            )
     print_total()
     print()
 
 
 def tick(args):
-    color = get_color("tick")
+    color = get_fore_color("tick")
     items = args.item
     with Storage() as s:
         print()
@@ -160,13 +179,21 @@ def tick(args):
             i = s.modify_item(item, "tick", state)
             if state is True:
                 p(color + "[✓] Ticked item", Style.BRIGHT + str(i["id"]), color)
+                History.write(
+                    "tick",
+                    "ticked item {} [{}]".format(str(i["id"]), i["text"]),
+                )
             else:
                 p(color + "[✓] Unticked item", Style.BRIGHT + str(i["id"]), color)
+                History.write(
+                    "untick",
+                    "unticked item {} [{}]".format(str(i["id"]), i["text"]),
+                )
     print()
 
 
 def mark(args):
-    color = get_color("mark")
+    color = get_fore_color("mark")
     items = args.item
     with Storage() as s:
         print()
@@ -175,13 +202,21 @@ def mark(args):
             i = s.modify_item(item, "mark", state)
             if state is True:
                 p(color + "[!] Marked item", Style.BRIGHT + str(i["id"]))
+                History.write(
+                    "mark",
+                    "marked item {} [{}]".format(str(i["id"]), i["text"]),
+                )
             else:
                 p(color + "[!] Unmarked item", Style.BRIGHT + str(i["id"]))
+                History.write(
+                    "unmark",
+                    "unmarked item {} [{}]".format(str(i["id"]), i["text"]),
+                )
     print()
 
 
 def star(args):
-    color = get_color("star")
+    color = get_fore_color("star")
     items = args.item
     with Storage() as s:
         print()
@@ -190,13 +225,21 @@ def star(args):
             i = s.modify_item(item, "star", state)
             if state is True:
                 p(color + "[*] Starred item", Style.BRIGHT + str(i["id"]))
+                History.write(
+                    "star",
+                    "starred item {} [{}]".format(str(i["id"]), i["text"]),
+                )
             else:
                 p(color + "[*] Unstarred item", Style.BRIGHT + str(i["id"]))
+                History.write(
+                    "unstar",
+                    "unstarred item {} [{}]".format(str(i["id"]), i["text"]),
+                )
     print()
 
 
 def edit(args):
-    color = get_color("edit")
+    color = get_fore_color("edit")
     item = args.item
     text = (args.text or "").strip()
     if text == "":
@@ -204,13 +247,17 @@ def edit(args):
         return
     with Storage() as s:
         i = s.modify_item(item, "text", text)
+        History.write(
+            "edit",
+            "editted item {} from [{}] to [{}]".format(str(i["id"]), i["text"], text),
+        )
     print()
     p(color + "[~] Edited text of item", Style.BRIGHT + str(i["id"]), color + "from", i["text"], color + "to", text)
     print()
 
 
 def tag(args):
-    color = get_color("tag")
+    color = get_fore_color("tag")
     items = args.item
     text = (args.text or "").strip()
     if len(text) > 10:
@@ -228,13 +275,21 @@ def tag(args):
             i = s.modify_item(item, "tag", tag_text)
             if text != "":
                 p(color + "[#] Tagged item", Style.BRIGHT + str(i["id"]), color + "with", tag_color + tag_text)
+                History.write(
+                    "tag",
+                    "tagged item {} [{}] with tag text [{}]".format(str(i["id"]), i["text"], text),
+                )
             else:
                 p(color + "[#] Untagged item", Style.BRIGHT + str(i["id"]))
+                History.write(
+                    "tag",
+                    "untagged item {} [{}]".format(str(i["id"]), i["text"]),
+                )
     print()
 
 
 def due(args):
-    color = get_color("due")
+    color = get_fore_color("due")
     items = args.item
     date = args.date or ""
     if date and not re.match(r"\d+[d|w]", date):
@@ -256,28 +311,40 @@ def due(args):
     with Storage() as s:
         print()
         for item in items:
-            s.modify_item(item, "due", ts)
+            i = s.modify_item(item, "due", ts)
             if ts:
                 p(color + "[:] Assigned due date", duedate, color + "to", Style.BRIGHT + str(item))
+                History.write(
+                    "due",
+                    "assiged due date [{}] to item {} [{}]".format(duedate, str(i["id"]), i["text"]),
+                )
             else:
                 p(color + "[:] Unassigned due date of item", Style.BRIGHT + str(item))
+                History.write(
+                    "due",
+                    "unassiged due date of item {} [{}]".format(str(i["id"]), i["text"]),
+                )
     print()
 
 
 def move(args):
-    color = get_color("move")
+    color = get_fore_color("move")
     items = args.item
     board = args.board
     with Storage() as s:
         print()
         for item in items:
-            s.move_item(item, board)
-            p(color + "[&] Moved item", Style.BRIGHT + str(item), color + "to", Style.BRIGHT + board)
+            i, b = s.move_item(item, board)
+            p(color + "[&] Moved item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + board)
+            History.write(
+                "move",
+                "moved item {} [{}] from board [{}] to [{}]".format(str(i["id"]), i["text"], b, board),
+            )
     print()
 
 
 def rename(args):
-    color = get_color("rename")
+    color = get_fore_color("rename")
     board = args.board
     new = (args.new or "").strip()
     if new == "":
@@ -288,11 +355,15 @@ def rename(args):
         s.get_board(board)  # try to get -> to test existence of the board
         s.shelf[new] = s.shelf.pop(board)
         p(color + "[~] Renamed", Style.BRIGHT + board, color + "to", Style.BRIGHT + new)
+        History.write(
+            "rename",
+            "renamed board [{}] to [{}]".format(board, new),
+        )
     print()
 
 
 def undo(_):
-    color = get_color("undo")
+    color = get_fore_color("undo")
     with Storage() as s:
         state = s._States.load(rm=False)
         if state is False:
@@ -300,21 +371,29 @@ def undo(_):
             return
         print()
         p(color + Style.BRIGHT + "Last Action:")
-        p("=>", get_color(state["action"]) + state["info"])
+        p("=>", get_fore_color(state["action"]) + state["info"])
         print()
         ask = input("[?] Continue (y/n) ? ")
         if ask != "y":
             error_print("Operation aborted")
             return
         s.load_state()
-        print(color + "[^] Undone", "=>", get_color(state["action"]) + state["info"])
+        History.write(
+            "undo",
+            "undid [{}] ({})".format(state["action"], state["info"]),
+        )
+        print(color + "[^] Undone", "=>", get_fore_color(state["action"]) + state["info"])
 
 
 def import_(args):
-    color = get_color("import")
+    color = get_fore_color("import")
     path = args.path
     with Storage() as s:
         full_path = s.import_(path)
+        History.write(
+            "import",
+            "imported boards from [{}]".format(full_path),
+        )
     print()
     p(color + "[I] Imported boards from", Style.BRIGHT + full_path)
     print_total()
@@ -322,7 +401,7 @@ def import_(args):
 
 
 def export(args):
-    color = get_color("export")
+    color = get_fore_color("export")
     dest = args.dest
     path = os.path.abspath(os.path.expanduser(dest))
     if os.path.isfile(path):
@@ -333,9 +412,22 @@ def export(args):
             return
     with Storage() as s:
         full_path = s.export(path)
+        History.write(
+            "export",
+            "exported boards to [{}]".format(full_path),
+        )
     print()
     p(color + "[E] Exported boards to", Style.BRIGHT + full_path)
     print()
+
+
+def history(_):
+    hist = History.load()
+    for action in hist:
+        name = action["action"]
+        info = action["info"]
+        date = action["date"]
+        print(Fore.LIGHTYELLOW_EX + date, get_back_color(name) + Fore.BLACK + name.upper().center(9), info)
 
 
 def display_board(shelf, date=False, timeline=False, im=False):
@@ -423,261 +515,6 @@ def display_board(shelf, date=False, timeline=False, im=False):
     print()
 
 
-if PPT:
-    # Define Interactive Mode related objects and functions here if prompt_toolkit is installed
-
-    def action(func):
-        """A decorator function for catching exceptions of an action."""
-
-        def inner(*args, **kwargs):
-            try:
-                result = func(*args, **kwargs)
-            except NoteboardException as e:
-                print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
-                logger.debug("ERROR:", exc_info=True)
-            except Exception:
-                exc = sys.exc_info()
-                exc = traceback.format_exception(*exc)
-                print(Style.BRIGHT + Fore.RED + "Uncaught Exception:\n", *exc)
-                logger.debug("Uncaught Exception:", exc_info=True)
-            else:
-                return result
-
-        return inner
-
-    class InteractivePrompt(cmd.Cmd):
-
-        class item_validator(Validator):
-
-            def __init__(self, all_items):
-                self.all_items = all_items
-                Validator.__init__(self)
-
-            def validate(self, document):
-                text = document.text.strip()
-                if text:
-                    try:
-                        items = shlex.split(text)
-                    except ValueError:
-                        # ValueError("No closing quotations.")
-                        items = text.split(" ")
-                    for item in items:
-                        if not item.isdigit():
-                            raise ValidationError(message="Input contains non-numeric characters")
-                        if item not in self.all_items:
-                            raise ValidationError(message="Item '{}' does not exist".format(item))
-
-        intro = "{0}[Interactive Mode]{1} Type help or ? to list all available commands.".format(Fore.LIGHTMAGENTA_EX, Fore.RESET)
-        prompt = "{}@{}(noteboard){}➤{}".format(Fore.CYAN, Style.BRIGHT + Fore.YELLOW, Fore.RESET, Style.RESET_ALL) + " "
-        commands = ["add", "remove", "clear", "edit", "move", "undo", "import", "quit"]
-
-        def do_help(self, arg):
-            print(Fore.LIGHTCYAN_EX + "Commands:   ", "    ".join(self.commands))
-
-        @action
-        def do_add(self, _):
-            with Storage() as s:
-                all_boards = s.boards
-            # completer
-            board_completer = WordCompleter(all_boards, sentence=True)
-            # prompt
-            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify item text that contain spaces or specify multiple items.")
-            items = prompt("[?] Item text: ").strip()
-            items = shlex.split(items)
-            if not items:
-                error_print("Operation aborted")
-                return
-
-            board = prompt("[?] Board: ", completer=board_completer, complete_while_typing=True).strip()
-            if not board:
-                error_print("Operation aborted")
-                return
-            # do add item
-            with Storage() as s:
-                for item in items:
-                    s.add_item(board, item)
-
-        @action
-        def do_remove(self, _):
-            with Storage() as s:
-                items = s.items
-            if not items:
-                error_print("No item to be removed")
-                return
-            all_items = {}
-            for item in items:
-                all_items[str(item)] = items[item]
-            # completer
-            item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
-            print(Fore.LIGHTBLACK_EX + "You can specify multiple items.")
-            answer = prompt("[?] Item ID: ", completer=item_completer, validator=self.item_validator(all_items), complete_while_typing=True).strip()
-            ids = shlex.split(answer)
-            if not ids:
-                error_print("Operation aborted")
-                return
-            # do remove item
-            with Storage() as s:
-                for id in ids:
-                    s.remove_item(int(id))
-
-        @action
-        def do_clear(self, _):
-            with Storage() as s:
-                all_boards = s.boards
-            if not all_boards:
-                error_print("No board to be cleared")
-                return
-            all_boards_quotes = ['"' + b + '"' if " " in b else b for b in all_boards]  # to make autocompletion more convenient
-            # validator for validating board existence
-            class board_validator(Validator):
-                def validate(self, document):
-                    text = document.text.strip()
-                    if text and text != "all":
-                        try:
-                            boards = shlex.split(text)
-                        except ValueError:
-                            # ValueError("No closing quotations.")
-                            boards = text.split(" ")
-                        for board in boards:
-                            if board not in all_boards:
-                                raise ValidationError(message="Board '{}' does not exist".format(board))
-            # completer
-            board_completer = WordCompleter(all_boards_quotes)
-            # prompt
-            print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
-            answer = prompt("[?] Board (`all` to clear all boards): ", completer=board_completer, validator=board_validator(), complete_while_typing=True).strip()
-            if not answer:
-                error_print("Operation aborted")
-                return
-            elif answer == "all":
-                # clear all boards
-                if not confirm("Clear all boards ?"):
-                    error_print("Operation aborted")
-                    return
-            # do clear boards
-            with Storage() as s:
-                if answer == "all":
-                    s.clear_board()
-                else:
-                    boards = shlex.split(answer)
-                    for board in boards:
-                        s.clear_board(board=board)
-
-        @action
-        def do_edit(self, _):
-            with Storage() as s:
-                items = s.items
-            if not items:
-                error_print("No item to be removed")
-                return
-            all_items = {}
-            for item in items:
-                all_items[str(item)] = items[item]
-            # completer
-            item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
-            # prompt
-            print(Fore.LIGHTBLACK_EX + "You can specify multiple items.")
-            items = prompt("[?] Item ID: ", completer=item_completer, validator=self.item_validator(all_items), complete_while_typing=True).strip()
-            ids = shlex.split(items)
-            if not ids:
-                error_print("Operation aborted")
-                return
-            text = prompt("[?] New text: ").strip()
-            if not text:
-                error_print("Operation aborted")
-                return
-            # do edit item
-            with Storage() as s:
-                for id in ids:
-                    s.modify_item(int(id), "text", text)
-
-        @action
-        def do_move(self, _):
-            with Storage() as s:
-                items = s.items
-                all_boards = s.boards
-            if not items:
-                error_print("No item to be moved")
-                return
-            all_items = {}
-            for item in items:
-                all_items[str(item)] = items[item]
-            # completer
-            item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
-            # prompt
-            print(Fore.LIGHTBLACK_EX + "You can specify multiple items.")
-            items = prompt("[?] Item ID: ", completer=item_completer, validator=self.item_validator(all_items), complete_while_typing=True).strip()
-            ids = shlex.split(items)
-            if not ids:
-                error_print("Operation aborted")
-                return
-            # completer
-            board_completer = WordCompleter(all_boards)
-            # prompt
-            board = prompt("[?] Destination board: ", completer=board_completer, complete_while_typing=True).strip()
-            if not board:
-                error_print("Operation aborted")
-                return
-            # do move item
-            with Storage() as s:
-                for id in ids:
-                    s.move_item(int(id), board)
-
-        @action
-        def do_undo(self, _):
-            with Storage() as s:
-                state = s._States.load(rm=False)
-                if state is False:
-                    error_print("Already at oldest change")
-                    return
-                print(get_color("undo") + Style.BRIGHT + "Last Action:")
-                print("=>", get_color(state["action"]) + state["info"])
-                if not confirm("[!] Continue ?"):
-                    error_print("Operation aborted")
-                    return
-                s.load_state()
-
-        @action
-        def do_import(self, _):
-            # validator for validating existence of file / directory of the path
-            class PathValidator(Validator):
-                def validate(self, document):
-                    text = document.text.strip()
-                    if text:
-                        path = os.path.abspath(text)
-                        if os.path.isdir(path):
-                            raise ValidationError(message="Path '{}' is a directory".format(path))
-                        if not os.path.isfile(path):
-                            raise ValidationError(message="File '{}' does not exist".format(path))
-            # prompt
-            answer = prompt("[?] File path: ", validator=PathValidator()).strip()
-            if not answer:
-                error_print("Operation aborted")
-                return
-            # do import
-            with Storage() as s:
-                s.import_(answer)
-
-        def do_quit(self, _):
-            sys.exit(0)
-
-        def default(self, line):
-            print(Style.BRIGHT + Fore.RED + "ERROR", "Invalid command '{}'".format(line))
-            return line
-
-        def postcmd(self, stop, line):
-            if line not in self.commands:
-                return
-            with Storage() as s:
-                shelf = dict(s.shelf)
-            display_board(shelf, im=True)
-
-        def emptyline(self):
-            with Storage() as s:
-                shelf = dict(s.shelf)
-            display_board(shelf, im=True)
-
-
 def main():
     description = (Style.BRIGHT + "    \033[4mNoteboard" + Style.RESET_ALL + " lets you manage your " + Fore.YELLOW + "notes" + Fore.RESET + " & " + Fore.CYAN + "tasks" + Fore.RESET
                    + " in a " + Fore.LIGHTMAGENTA_EX + "tidy" + Fore.RESET + " and " + Fore.LIGHTMAGENTA_EX + "fancy" + Fore.RESET + " way.")
@@ -708,119 +545,111 @@ Examples:
     parser.add_argument("-d", "--date", help="show boards with the added date of every item", default=False, action="store_true", dest="d")
     parser.add_argument("-s", "--sort", help="show boards with items on each board sorted alphabetically", default=False, action="store_true", dest="s")
     parser.add_argument("-t", "--timeline", help="show boards in timeline view, ignore the -d/--date option", default=False, action="store_true", dest="t")
-    parser.add_argument("-i", "--interactive", help="enter interactive mode", default=False, action="store_true", dest="i")
     subparsers = parser.add_subparsers()
 
-    add_parser = subparsers.add_parser("add", help=get_color("add") + "[+] Add an item to a board" + Fore.RESET)
+    add_parser = subparsers.add_parser("add", help=get_fore_color("add") + "[+] Add an item to a board" + Fore.RESET)
     add_parser.add_argument("item", help="the item you want to add", type=str, metavar="<item text>", nargs="+")
     add_parser.add_argument("-b", "--board", help="the board you want to add the item to (default: {})".format(DEFAULT_BOARD), type=str, metavar="<name>")
     add_parser.set_defaults(func=add)
 
-    remove_parser = subparsers.add_parser("remove", help=get_color("remove") + "[-] Remove items" + Fore.RESET)
+    remove_parser = subparsers.add_parser("remove", help=get_fore_color("remove") + "[-] Remove items" + Fore.RESET)
     remove_parser.add_argument("item", help="id of the item you want to remove", type=int, metavar="<item id>", nargs="+")
     remove_parser.set_defaults(func=remove)
 
-    clear_parser = subparsers.add_parser("clear", help=get_color("clear") + "[x] Clear all items on a/all board(s)" + Fore.RESET)
+    clear_parser = subparsers.add_parser("clear", help=get_fore_color("clear") + "[x] Clear all items on a/all board(s)" + Fore.RESET)
     clear_parser.add_argument("board", help="clear this specific board", type=str, metavar="<name>", nargs="*")
     clear_parser.set_defaults(func=clear)
 
-    tick_parser = subparsers.add_parser("tick", help=get_color("tick") + "[✓] Tick/Untick an item" + Fore.RESET)
+    tick_parser = subparsers.add_parser("tick", help=get_fore_color("tick") + "[✓] Tick/Untick an item" + Fore.RESET)
     tick_parser.add_argument("item", help="id of the item you want to tick/untick", type=int, metavar="<item id>", nargs="+")
     tick_parser.set_defaults(func=tick)
 
-    mark_parser = subparsers.add_parser("mark", help=get_color("mark") + "[!] Mark/Unmark an item" + Fore.RESET)
+    mark_parser = subparsers.add_parser("mark", help=get_fore_color("mark") + "[!] Mark/Unmark an item" + Fore.RESET)
     mark_parser.add_argument("item", help="id of the item you want to mark/unmark", type=int, metavar="<item id>", nargs="+")
     mark_parser.set_defaults(func=mark)
 
-    star_parser = subparsers.add_parser("star", help=get_color("star") + "[*] Star/Unstar an item" + Fore.RESET)
+    star_parser = subparsers.add_parser("star", help=get_fore_color("star") + "[*] Star/Unstar an item" + Fore.RESET)
     star_parser.add_argument("item", help="id of the item you want to star/unstar", type=int, metavar="<item id>", nargs="+")
     star_parser.set_defaults(func=star)
 
-    edit_parser = subparsers.add_parser("edit", help=get_color("edit") + "[~] Edit the text of an item" + Fore.RESET)
+    edit_parser = subparsers.add_parser("edit", help=get_fore_color("edit") + "[~] Edit the text of an item" + Fore.RESET)
     edit_parser.add_argument("item", help="id of the item you want to edit", type=int, metavar="<item id>")
     edit_parser.add_argument("text", help="new text to replace the old one", type=str, metavar="<new text>")
     edit_parser.set_defaults(func=edit)
 
-    tag_parser = subparsers.add_parser("tag", help=get_color("tag") + "[#] Tag an item with text" + Fore.RESET)
+    tag_parser = subparsers.add_parser("tag", help=get_fore_color("tag") + "[#] Tag an item with text" + Fore.RESET)
     tag_parser.add_argument("item", help="id of the item you want to tag", type=int, metavar="<item id>", nargs="+")
     tag_parser.add_argument("-t", "--text", help="text of tag (do not specify this argument to untag)", type=str, metavar="<tag text>")
     tag_parser.set_defaults(func=tag)
 
-    due_parser = subparsers.add_parser("due", help=get_color("due") + "[:] Assign a due date to an item" + Fore.RESET)
+    due_parser = subparsers.add_parser("due", help=get_fore_color("due") + "[:] Assign a due date to an item" + Fore.RESET)
     due_parser.add_argument("item", help="id of the item", type=int, metavar="<item id>", nargs="+")
     due_parser.add_argument("-d", "--date", help="due date of the item in the format of `<digit><d|w>` e.g. '1w4d' for 1 week and 4 days (11 days)", type=str, metavar="<due date>")
     due_parser.set_defaults(func=due)
 
-    run_parser = subparsers.add_parser("run", help=get_color("run") + "[>] Run an item as command" + Fore.RESET)
+    run_parser = subparsers.add_parser("run", help=get_fore_color("run") + "[>] Run an item as command" + Fore.RESET)
     run_parser.add_argument("item", help="id of the item you want to run", type=int, metavar="<item id>")
     run_parser.set_defaults(func=run)
 
-    move_parser = subparsers.add_parser("move", help=get_color("move") + "[&] Move an item to another board" + Fore.RESET)
+    move_parser = subparsers.add_parser("move", help=get_fore_color("move") + "[&] Move an item to another board" + Fore.RESET)
     move_parser.add_argument("item", help="id of the item you want to move", type=int, metavar="<item id>", nargs="+")
     move_parser.add_argument("board", help="name of the destination board", type=str, metavar="<name>")
     move_parser.set_defaults(func=move)
 
-    rename_parser = subparsers.add_parser("rename", help=get_color("rename") + "[~] Rename the name of the board" + Fore.RESET)
+    rename_parser = subparsers.add_parser("rename", help=get_fore_color("rename") + "[~] Rename the name of the board" + Fore.RESET)
     rename_parser.add_argument("board", help="name of the board you want to rename", type=str, metavar="<name>")
     rename_parser.add_argument("new", help="new name to replace the old one", type=str, metavar="<new name>")
     rename_parser.set_defaults(func=rename)
 
-    undo_parser = subparsers.add_parser("undo", help=get_color("undo") + "[^] Undo the last action" + Fore.RESET)
+    undo_parser = subparsers.add_parser("undo", help=get_fore_color("undo") + "[^] Undo the last action" + Fore.RESET)
     undo_parser.set_defaults(func=undo)
 
-    import_parser = subparsers.add_parser("import", help=get_color("import") + "[I] Import and load boards from JSON file" + Fore.RESET)
+    import_parser = subparsers.add_parser("import", help=get_fore_color("import") + "[I] Import and load boards from JSON file" + Fore.RESET)
     import_parser.add_argument("path", help="path to the target import file", type=str, metavar="<path>")
     import_parser.set_defaults(func=import_)
 
-    export_parser = subparsers.add_parser("export", help=get_color("export") + "[E] Export boards as a JSON file" + Fore.RESET)
+    export_parser = subparsers.add_parser("export", help=get_fore_color("export") + "[E] Export boards as a JSON file" + Fore.RESET)
     export_parser.add_argument("-d", "--dest", help="destination of the exported file (default: ./board.json)", type=str, default="./board.json", metavar="<destination path>")
     export_parser.set_defaults(func=export)
 
+    history_parser = subparsers.add_parser("history", help="[.] Prints out the history of actions")
+    history_parser.set_defaults(func=history)
+
     args = parser.parse_args()
     init(autoreset=True)
-    if args.i:
-        if PPT is False:
-            print(Style.BRIGHT + Fore.RED + "ERROR:", Fore.YELLOW + "Looks like you don't have 'prompt toolkit' installed. Therefore, you will not be able to use interactive mode.")
-            print("You can install it with `pip3 install prompt_toolkit`.")
-        else:
-            try:
-                InteractivePrompt().cmdloop()
-            except KeyboardInterrupt:
-                pass
+    try:
+        args.func
+    except AttributeError:
+        with Storage() as s:
+            shelf = dict(s.shelf)
+
+        if args.s:
+            # sort alphabetically
+            for board in shelf:
+                shelf[board] = sorted(shelf[board], key=lambda x: x["text"].lower())
+        elif args.d:
+            # sort by date
+            for board in shelf:
+                shelf[board] = sorted(shelf[board], key=lambda x: x["time"], reverse=True)
+
+        if args.t:
+            data = {}
+            for board in shelf:
+                for item in shelf[board]:
+                    if item["date"]:
+                        if item["date"] not in data:
+                            data[item["date"]] = []
+                        item.update({"board": board})
+                        data[item["date"]].append(item)
+            shelf = data
+        display_board(shelf, date=args.d, timeline=args.t)
     else:
         try:
-            args.func
-        except AttributeError:
-            with Storage() as s:
-                shelf = dict(s.shelf)
-
-            if args.s:
-                # sort alphabetically
-                for board in shelf:
-                    shelf[board] = sorted(shelf[board], key=lambda x: x["text"].lower())
-            elif args.d:
-                # sort by date
-                for board in shelf:
-                    shelf[board] = sorted(shelf[board], key=lambda x: x["time"], reverse=True)
-
-            if args.t:
-                data = {}
-                for board in shelf:
-                    for item in shelf[board]:
-                        if item["date"]:
-                            if item["date"] not in data:
-                                data[item["date"]] = []
-                            item.update({"board": board})
-                            data[item["date"]].append(item)
-                shelf = data
-            display_board(shelf, date=args.d, timeline=args.t)
-        else:
-            try:
-                args.func(args)
-            except NoteboardException as e:
-                error_print(str(e))
-                logger.debug("(ERROR)", exc_info=True)
-            except Exception as e:
-                error_print(str(e))
-                logger.debug("(ERROR)", exc_info=True)
+            args.func(args)
+        except NoteboardException as e:
+            error_print(str(e))
+            logger.debug("(ERROR)", exc_info=True)
+        except Exception as e:
+            error_print(str(e))
+            logger.debug("(ERROR)", exc_info=True)
     deinit()

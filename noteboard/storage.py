@@ -6,7 +6,7 @@ import json
 import os
 import logging
 
-from . import DIR_PATH, STATES_PATH, STORAGE_PATH, STORAGE_GZ_PATH, DEFAULT_BOARD
+from . import DIR_PATH, HISTORY_PATH, STATES_PATH, STORAGE_PATH, STORAGE_GZ_PATH, DEFAULT_BOARD
 from .utils import get_time, to_datetime
 
 logger = logging.getLogger("noteboard")
@@ -317,7 +317,7 @@ class Storage:
             value -- new value to replace the old value
         
         Returns:
-            dict -- the old item
+            dict -- the item before modification
         """
         for board in self.shelf:
             for item in self.shelf[board]:
@@ -349,6 +349,7 @@ class Storage:
 
         Returns:
             item {dict} -- the item that is moved
+            b {str} -- the name of board the item originally from
         """
         for b in self.shelf:
             for item in self.shelf[b]:
@@ -360,7 +361,7 @@ class Storage:
                     self.shelf[board].append(item)
                     # remove from the current board `b`
                     self.shelf[b].remove(item)
-                    return item
+                    return item, b
         raise ItemNotFoundError(id)
 
     @staticmethod
@@ -441,3 +442,42 @@ class Storage:
             return state
         self.shelf.clear()
         self.shelf.update(state["data"])
+
+
+class History:
+
+    @staticmethod
+    def load():
+        """Load the history file."""
+        try:
+            with gzip.GzipFile(HISTORY_PATH, "r") as j:
+                history = json.loads(j.read().decode("utf-8"))
+        except FileNotFoundError:
+            raise NoteboardException("History file not found for loading")
+        return history
+
+    @staticmethod
+    def write(action, info):
+        """
+        Write action data to history file.
+
+        Arguments:
+            action {str} -- action name
+            info {str} -- information of this action
+        """
+        is_new = not os.path.isfile(HISTORY_PATH)
+
+        # Create and initialise pickle file with an empty list
+        if is_new:
+            with gzip.GzipFile(HISTORY_PATH, "w+") as j:
+                j.write(json.dumps([]).encode("utf-8"))
+
+        # Write action data
+        # => read the current saved states
+        history = History.load()
+        # => dump state data
+        data = {"action": action, "info": info, "date": get_time("%d %b %Y %X")[0]}
+        logger.debug("Write history: {}".format(data))
+        history.append(data)
+        with gzip.GzipFile(HISTORY_PATH, "w") as j:
+            j.write(json.dumps(history).encode("utf-8"))

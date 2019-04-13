@@ -14,8 +14,11 @@ DEFAULT = {
 }
 
 
-def get_time():
-    date = datetime.date.today().strftime("%a %d %b %Y")  # str
+def get_time(fmt=None):
+    if fmt:
+        date = datetime.datetime.now().strftime(fmt)  # str
+    else:
+        date = datetime.datetime.now().strftime("%a %d %b %Y")  # str
     timestamp = time.time()
     return date, timestamp
 
