@@ -36,7 +36,6 @@
   - [Undo previous actions](#undo-previous-actions)
   - [Import board from external JSON file](#import-board-from-external-json-file)
   - [Export board data as JSON file](#export-board-data-as-json-file)
-- [Interactive Mode](#interactive-mode)
 - [Configurations](#configurations)
 - [Cautions](#cautions)
 - [Contributing](#contributing)
@@ -52,7 +51,7 @@
 * Tag item with color and text 🏷
 * Import boards from external JSON files & Export boards as JSON files
 * Undo multiple actions / changes
-* Interactive mode for dynamic operations with auto-complete and auto-suggestions
+* Keep historical states 🕥
 * `Gzip` compressed storage 📚
 * Configurable through `~/.noteboard.json`
 
@@ -84,9 +83,7 @@ $ python3 setup.py install
 
 ### Dependencies
 
-1. [colorama](https://github.com/tartley/colorama)
-
-2. [prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit) [optional]
+[colorama](https://github.com/tartley/colorama)
 
 ## Usage
 
@@ -96,8 +93,8 @@ Actions:
     remove              [-] Remove items
     clear               [x] Clear all items on a/all boards
     tick                [✓] Tick/Untick an item
-    mark                [*] Mark/Unmark an item
-    star                [⭑] Star/Unstar an item
+    mark                [!] Mark/Unmark an item
+    star                [*] Star/Unstar an item
     edit                [~] Edit the text of an item
     tag                 [#] Tag an item with text
     due                 [:] Assign a due date to an item
@@ -114,7 +111,6 @@ Options:
     -d, --date          show boards with the added date of every item
     -s, --sort          show boards with items on each board sorted alphabetically
     -t, --timeline      show boards in timeline view, ignore the -d/--date option
-    -i, --interactive   enter interactive mode
 ```
 
 ---
@@ -126,7 +122,6 @@ Options:
 * `-d/--date` : show boards with the last modified date of each item in the format of `<weekday> <day> <month> <year>`. e.g. `Fri 25 Jan 2019`
 * `-s/--sort` : show boards with items on each board sorted alphabetically by the text of the items
 * `-t, --timeline` : show boards in timeline view, ignore the `-d/--date` option
-* `-i/--interactive` : enter [interactive mode](#interactive-mode)
 
 ***NOTE**: If `-d/--date` is specified, items of each board will be sorted by their dates from the most recent to the oldest ones.*
 
@@ -271,27 +266,6 @@ The JSON file must be in a valid structure according to the following.
 The exported JSON file is named `board.json`.
 
 ---
-
-## Interactive Mode
-
-**➤ Made with [python-prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit)**
-
-Use `$ board -i/--interactive` to enter interactive mode.
-
-**Commands:**
-
-1. add
-2. remove
-3. clear
-4. edit
-5. move
-6. undo
-7. import
-8. quit
-
-Enter an empty command to view boards. Enter an empty line in prompt to abort the operating action.
-
-***NOTE**: You can use quotes (`'` or `"`) to specify multiple board names or board names that contain spaces and item ids.*
 
 ## Configurations
 

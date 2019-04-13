@@ -31,7 +31,7 @@ Noteboard lets you manage your notes & tasks in a tidy and fancy way.
 * Tag item with color and text 🏷
 * Import boards from external JSON files & Export boards as JSON files
 * Undo multiple actions / changes
-* Interactive mode for dynamic operations with auto-complete and auto-suggestions
+* Keep historical states 🕥
 * `Gzip` compressed storage 📚
 * Configurable through `~/.noteboard.json`
 """
