@@ -36,6 +36,7 @@
   - [Undo previous actions](#undo-previous-actions)
   - [Import board from external JSON file](#import-board-from-external-json-file)
   - [Export board data as JSON file](#export-board-data-as-json-file)
+  - [Historical Changes](#historical-changes)
 - [Configurations](#configurations)
 - [Cautions](#cautions)
 - [Contributing](#contributing)
@@ -264,6 +265,12 @@ The JSON file must be in a valid structure according to the following.
 * `-d/--dest <destination path>` : destination path of the exported file (directory)
 
 The exported JSON file is named `board.json`.
+
+---
+
+### Historical Changes
+
+`$ board history`
 
 ---
 
