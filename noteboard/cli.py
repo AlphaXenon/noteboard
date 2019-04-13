@@ -48,6 +48,10 @@ def p(*args, **kwargs):
     print(" ", *args, **kwargs)
 
 
+def error_print(text):
+    print(Style.BRIGHT + Fore.LIGHTRED_EX + "✘ " + text)
+
+
 def get_color(action):
     return COLORS.get(action, "")
 
@@ -76,7 +80,6 @@ def print_total():
 
 
 def run(args):
-    # TODO: Use a peseudo terminal to emulate command execution
     color = get_color("run")
     item = args.item
     with Storage() as s:
@@ -111,7 +114,7 @@ def add(args):
         print()
         for item in items:
             if not item:
-                print(Fore.RED + "[!] Text must not be empty")
+                error_print("Text must not be empty")
                 return
             i = s.add_item(board, item)
             p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or DEFAULT_BOARD))
@@ -171,9 +174,9 @@ def mark(args):
             state = not s.get_item(item)["mark"]
             i = s.modify_item(item, "mark", state)
             if state is True:
-                p(color + "[*] Marked item", Style.BRIGHT + str(i["id"]))
+                p(color + "[!] Marked item", Style.BRIGHT + str(i["id"]))
             else:
-                p(color + "[*] Unmarked item", Style.BRIGHT + str(i["id"]))
+                p(color + "[!] Unmarked item", Style.BRIGHT + str(i["id"]))
     print()
 
 
@@ -186,9 +189,9 @@ def star(args):
             state = not s.get_item(item)["star"]
             i = s.modify_item(item, "star", state)
             if state is True:
-                p(color + "[⭑] Starred item", Style.BRIGHT + str(i["id"]))
+                p(color + "[*] Starred item", Style.BRIGHT + str(i["id"]))
             else:
-                p(color + "[⭑] Unstarred item", Style.BRIGHT + str(i["id"]))
+                p(color + "[*] Unstarred item", Style.BRIGHT + str(i["id"]))
     print()
 
 
@@ -197,7 +200,7 @@ def edit(args):
     item = args.item
     text = (args.text or "").strip()
     if text == "":
-        print(Fore.RED + "[!] Text must not be empty")
+        error_print("Text must not be empty")
         return
     with Storage() as s:
         i = s.modify_item(item, "text", text)
@@ -211,15 +214,11 @@ def tag(args):
     items = args.item
     text = (args.text or "").strip()
     if len(text) > 10:
-        print(Fore.RED + "[!] Tag text length should not be longer than 10 characters")
+        error_print("Tag text length should not be longer than 10 characters")
         return
     if text != "":
         c = TAGS.get(text, "") or TAGS["default"]
-        try:
-            tag_color = eval("Fore." + c.upper())  # validate coloraama attribute supplied in config
-        except AttributeError:
-            print(Fore.RED + "[!] 'colorama.AnsiBack' object has no attribute '{}'".format(c.upper()))
-            return
+        tag_color = eval("Fore." + c.upper())
         tag_text = text.replace(" ", "-")
     else:
         tag_text = ""
@@ -239,7 +238,7 @@ def due(args):
     items = args.item
     date = args.date or ""
     if date and not re.match(r"\d+[d|w]", date):
-        print(Fore.RED + "[!] Invalid date pattern format")
+        error_print("Invalid date pattern format")
         return
     match = re.findall(r"\d+[d|w]", date)
     if date:
@@ -282,7 +281,7 @@ def rename(args):
     board = args.board
     new = (args.new or "").strip()
     if new == "":
-        print(Fore.RED + "[!] Board name must not be empty")
+        error_print("Board name must not be empty")
         return
     with Storage() as s:
         print()
@@ -292,12 +291,12 @@ def rename(args):
     print()
 
 
-def undo(args):
+def undo(_):
     color = get_color("undo")
     with Storage() as s:
         state = s._States.load(rm=False)
         if state is False:
-            print(Fore.RED + "[!] Already at oldest change")
+            error_print("Already at oldest change")
             return
         print()
         p(color + Style.BRIGHT + "Last Action:")
@@ -305,7 +304,7 @@ def undo(args):
         print()
         ask = input("[?] Continue (y/n) ? ")
         if ask != "y":
-            print(Fore.RED + "[!] Operation aborted")
+            error_print("Operation aborted")
             return
         s.load_state()
         print(color + "[^] Undone", "=>", get_color(state["action"]) + state["info"])
@@ -327,10 +326,10 @@ def export(args):
     dest = args.dest
     path = os.path.abspath(os.path.expanduser(dest))
     if os.path.isfile(path):
-        print(Fore.YELLOW + "[!] File {} already exists".format(path))
+        error_print("File {} already exists".format(path))
         ask = input("[?] Overwrite (y/n) ? ")
         if ask != "y":
-            print(Fore.RED + "[!] Operation aborted")
+            error_print("Operation aborted")
             return
     with Storage() as s:
         full_path = s.export(path)
@@ -358,8 +357,6 @@ def display_board(shelf, date=False, timeline=False, im=False):
 
         # Print Item
         for item in shelf[board]:
-
-            # Mark, Text color, Tag
             mark = Fore.BLUE + "●"
             text_color = ""
             tag_text = ""
@@ -450,7 +447,7 @@ if PPT:
 
     class InteractivePrompt(cmd.Cmd):
 
-        class ItemValidator(Validator):
+        class item_validator(Validator):
 
             def __init__(self, all_items):
                 self.all_items = all_items
@@ -478,7 +475,7 @@ if PPT:
             print(Fore.LIGHTCYAN_EX + "Commands:   ", "    ".join(self.commands))
 
         @action
-        def do_add(self, arg):
+        def do_add(self, _):
             with Storage() as s:
                 all_boards = s.boards
             # completer
@@ -488,12 +485,12 @@ if PPT:
             items = prompt("[?] Item text: ").strip()
             items = shlex.split(items)
             if not items:
-                print(Fore.RED + "[!] Operation aborted")
+                error_print("Operation aborted")
                 return
 
             board = prompt("[?] Board: ", completer=board_completer, complete_while_typing=True).strip()
             if not board:
-                print(Fore.RED + "[!] Operation aborted")
+                error_print("Operation aborted")
                 return
             # do add item
             with Storage() as s:
@@ -501,11 +498,11 @@ if PPT:
                     s.add_item(board, item)
 
         @action
-        def do_remove(self, arg):
+        def do_remove(self, _):
             with Storage() as s:
                 items = s.items
             if not items:
-                print(Fore.RED + "[!] No item to be removed")
+                error_print("No item to be removed")
                 return
             all_items = {}
             for item in items:
@@ -513,10 +510,10 @@ if PPT:
             # completer
             item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
             print(Fore.LIGHTBLACK_EX + "You can specify multiple items.")
-            answer = prompt("[?] Item ID: ", completer=item_completer, validator=self.ItemValidator(all_items), complete_while_typing=True).strip()
+            answer = prompt("[?] Item ID: ", completer=item_completer, validator=self.item_validator(all_items), complete_while_typing=True).strip()
             ids = shlex.split(answer)
             if not ids:
-                print(Fore.RED + "[!] Operation aborted")
+                error_print("Operation aborted")
                 return
             # do remove item
             with Storage() as s:
@@ -524,15 +521,15 @@ if PPT:
                     s.remove_item(int(id))
 
         @action
-        def do_clear(self, arg):
+        def do_clear(self, _):
             with Storage() as s:
                 all_boards = s.boards
             if not all_boards:
-                print(Fore.RED + "[!] No board to be cleared")
+                error_print("No board to be cleared")
                 return
             all_boards_quotes = ['"' + b + '"' if " " in b else b for b in all_boards]  # to make autocompletion more convenient
             # validator for validating board existence
-            class BoardValidator(Validator):
+            class board_validator(Validator):
                 def validate(self, document):
                     text = document.text.strip()
                     if text and text != "all":
@@ -548,14 +545,14 @@ if PPT:
             board_completer = WordCompleter(all_boards_quotes)
             # prompt
             print(Fore.LIGHTBLACK_EX + "You can use quotations to specify board titles that contain spaces or specify multiple boards.")
-            answer = prompt("[?] Board (`all` to clear all boards): ", completer=board_completer, validator=BoardValidator(), complete_while_typing=True).strip()
+            answer = prompt("[?] Board (`all` to clear all boards): ", completer=board_completer, validator=board_validator(), complete_while_typing=True).strip()
             if not answer:
-                print(Fore.RED + "[!] Operation aborted")
+                error_print("Operation aborted")
                 return
             elif answer == "all":
                 # clear all boards
-                if not confirm("[!] Clear all boards ?"):
-                    print(Fore.RED + "[!] Operation aborted")
+                if not confirm("Clear all boards ?"):
+                    error_print("Operation aborted")
                     return
             # do clear boards
             with Storage() as s:
@@ -567,11 +564,11 @@ if PPT:
                         s.clear_board(board=board)
 
         @action
-        def do_edit(self, arg):
+        def do_edit(self, _):
             with Storage() as s:
                 items = s.items
             if not items:
-                print(Fore.RED + "[!] No item to be removed")
+                error_print("No item to be removed")
                 return
             all_items = {}
             for item in items:
@@ -580,14 +577,14 @@ if PPT:
             item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
             # prompt
             print(Fore.LIGHTBLACK_EX + "You can specify multiple items.")
-            items = prompt("[?] Item ID: ", completer=item_completer, validator=self.ItemValidator(all_items), complete_while_typing=True).strip()
+            items = prompt("[?] Item ID: ", completer=item_completer, validator=self.item_validator(all_items), complete_while_typing=True).strip()
             ids = shlex.split(items)
             if not ids:
-                print(Fore.RED + "[!] Operation aborted")
+                error_print("Operation aborted")
                 return
             text = prompt("[?] New text: ").strip()
             if not text:
-                print(Fore.RED + "[!] Operation aborted")
+                error_print("Operation aborted")
                 return
             # do edit item
             with Storage() as s:
@@ -595,12 +592,12 @@ if PPT:
                     s.modify_item(int(id), "text", text)
 
         @action
-        def do_move(self, arg):
+        def do_move(self, _):
             with Storage() as s:
                 items = s.items
                 all_boards = s.boards
             if not items:
-                print(Fore.RED + "[!] No item to be moved")
+                error_print("No item to be moved")
                 return
             all_items = {}
             for item in items:
@@ -609,17 +606,17 @@ if PPT:
             item_completer = WordCompleter(list(all_items.keys()), meta_dict=all_items)
             # prompt
             print(Fore.LIGHTBLACK_EX + "You can specify multiple items.")
-            items = prompt("[?] Item ID: ", completer=item_completer, validator=self.ItemValidator(all_items), complete_while_typing=True).strip()
+            items = prompt("[?] Item ID: ", completer=item_completer, validator=self.item_validator(all_items), complete_while_typing=True).strip()
             ids = shlex.split(items)
             if not ids:
-                print(Fore.RED + "[!] Operation aborted")
+                error_print("Operation aborted")
                 return
             # completer
             board_completer = WordCompleter(all_boards)
             # prompt
             board = prompt("[?] Destination board: ", completer=board_completer, complete_while_typing=True).strip()
             if not board:
-                print(Fore.RED + "[!] Operation aborted")
+                error_print("Operation aborted")
                 return
             # do move item
             with Storage() as s:
@@ -627,21 +624,21 @@ if PPT:
                     s.move_item(int(id), board)
 
         @action
-        def do_undo(self, arg):
+        def do_undo(self, _):
             with Storage() as s:
                 state = s._States.load(rm=False)
                 if state is False:
-                    print(Fore.RED + "[!] Already at oldest change")
+                    error_print("Already at oldest change")
                     return
                 print(get_color("undo") + Style.BRIGHT + "Last Action:")
                 print("=>", get_color(state["action"]) + state["info"])
                 if not confirm("[!] Continue ?"):
-                    print(Fore.RED + "[!] Operation aborted")
+                    error_print("Operation aborted")
                     return
                 s.load_state()
 
         @action
-        def do_import(self, arg):
+        def do_import(self, _):
             # validator for validating existence of file / directory of the path
             class PathValidator(Validator):
                 def validate(self, document):
@@ -655,13 +652,13 @@ if PPT:
             # prompt
             answer = prompt("[?] File path: ", validator=PathValidator()).strip()
             if not answer:
-                print(Fore.RED + "[!] Operation aborted")
+                error_print("Operation aborted")
                 return
             # do import
             with Storage() as s:
                 s.import_(answer)
 
-        def do_quit(self, arg):
+        def do_quit(self, _):
             sys.exit(0)
 
         def default(self, line):
@@ -731,11 +728,11 @@ Examples:
     tick_parser.add_argument("item", help="id of the item you want to tick/untick", type=int, metavar="<item id>", nargs="+")
     tick_parser.set_defaults(func=tick)
 
-    mark_parser = subparsers.add_parser("mark", help=get_color("mark") + "[*] Mark/Unmark an item" + Fore.RESET)
+    mark_parser = subparsers.add_parser("mark", help=get_color("mark") + "[!] Mark/Unmark an item" + Fore.RESET)
     mark_parser.add_argument("item", help="id of the item you want to mark/unmark", type=int, metavar="<item id>", nargs="+")
     mark_parser.set_defaults(func=mark)
 
-    star_parser = subparsers.add_parser("star", help=get_color("star") + "[⭑] Star/Unstar an item" + Fore.RESET)
+    star_parser = subparsers.add_parser("star", help=get_color("star") + "[*] Star/Unstar an item" + Fore.RESET)
     star_parser.add_argument("item", help="id of the item you want to star/unstar", type=int, metavar="<item id>", nargs="+")
     star_parser.set_defaults(func=star)
 
@@ -796,12 +793,16 @@ Examples:
         except AttributeError:
             with Storage() as s:
                 shelf = dict(s.shelf)
+
             if args.s:
+                # sort alphabetically
                 for board in shelf:
                     shelf[board] = sorted(shelf[board], key=lambda x: x["text"].lower())
             elif args.d:
+                # sort by date
                 for board in shelf:
                     shelf[board] = sorted(shelf[board], key=lambda x: x["time"], reverse=True)
+
             if args.t:
                 data = {}
                 for board in shelf:
@@ -817,11 +818,9 @@ Examples:
             try:
                 args.func(args)
             except NoteboardException as e:
-                print(Style.BRIGHT + Fore.RED + "ERROR:", str(e))
-                logger.debug("ERROR:", exc_info=True)
-            except Exception:
-                exc = sys.exc_info()
-                exc = traceback.format_exception(*exc)
-                print(Style.BRIGHT + Fore.RED + "Uncaught Exception:\n", *exc)
-                logger.debug("Uncaught Exception:", exc_info=True)
+                error_print(str(e))
+                logger.debug("(ERROR)", exc_info=True)
+            except Exception as e:
+                error_print(str(e))
+                logger.debug("(ERROR)", exc_info=True)
     deinit()

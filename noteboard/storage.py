@@ -23,7 +23,7 @@ class ItemNotFoundError(NoteboardException):
         self.id = id
 
     def __str__(self):
-        return "No item with id '{}' was found.".format(self.id)
+        return "Item {} not found".format(self.id)
 
 
 class BoardNotFoundError(NoteboardException):
@@ -33,7 +33,7 @@ class BoardNotFoundError(NoteboardException):
         self.name = name
 
     def __str__(self):
-        return "No board with name '{}' was found.".format(self.name)
+        return "Board '{}' not found".format(self.name)
 
 
 class States:
@@ -57,8 +57,10 @@ class States:
                 self.stacks = pickle.load(pkl)
         except FileNotFoundError:
             raise NoteboardException("States file not found for loading")
+
         if len(self.stacks) == 0:
             return False    # No more undos
+
         if rm is True:
             state = self.stacks.pop()    # => [undo] get the last state and remove it
             logger.debug("Load state: {}".format(state))
@@ -79,10 +81,12 @@ class States:
             state {dict} -- data of the current state to be saved
         """
         is_new = not os.path.isfile(STATES_PATH)
+
         # Create and initialise pickle file with an empty list
         if is_new:
             with gzip.open(STATES_PATH, "wb+") as pkl:
                 pickle.dump([], pkl)
+
         # Dump state data
         # => read the current saved states
         with gzip.open(STATES_PATH, "rb") as pkl:
@@ -141,8 +145,8 @@ class Storage:
                 continue
             # always sort items on the boards before closing
             self.shelf[board] = list(sorted(self.shelf[board], key=lambda x: x["id"]))
-
         self._shelf.close()
+
         # compress storage to storage.gz
         with gzip.open(STORAGE_GZ_PATH, "wb") as f_out:
             with open(STORAGE_PATH, "rb") as f_in:
