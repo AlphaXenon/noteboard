@@ -612,7 +612,7 @@ Examples:
     export_parser.add_argument("-d", "--dest", help="destination of the exported file (default: ./board.json)", type=str, default="./board.json", metavar="<destination path>")
     export_parser.set_defaults(func=export)
 
-    history_parser = subparsers.add_parser("history", help="[.] Prints out the history of actions")
+    history_parser = subparsers.add_parser("history", help="[.] Prints out the historical changes")
     history_parser.set_defaults(func=history)
 
     args = parser.parse_args()
