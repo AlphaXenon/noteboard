@@ -386,14 +386,11 @@ def history(_):
         print(Fore.LIGHTYELLOW_EX + date, get_back_color(name) + Fore.BLACK + name.upper().center(9), info)
 
 
-def display_board(shelf, date=False, timeline=False, im=False):
+def display_board(shelf, date=False, timeline=False):
     # print initial help message
     if not shelf:
         print()
-        if im is True:
-            c = "`help`"
-        else:
-            c = "`board --help`"
+        c = "`board --help`"
         p(Style.BRIGHT + "Type", Style.BRIGHT + Fore.YELLOW + c, Style.BRIGHT + "to get started")
 
     for board in shelf:
