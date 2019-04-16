@@ -1,12 +1,11 @@
 import shelve
-import pickle
 import gzip
 import shutil
 import json
 import os
 import logging
 
-from . import DIR_PATH, HISTORY_PATH, STATES_PATH, STORAGE_PATH, STORAGE_GZ_PATH, DEFAULT_BOARD
+from . import DIR_PATH, HISTORY_PATH, STORAGE_PATH, STORAGE_GZ_PATH, DEFAULT_BOARD
 from .utils import get_time, to_datetime
 
 logger = logging.getLogger("noteboard")
@@ -36,67 +35,51 @@ class BoardNotFoundError(NoteboardException):
         return "Board '{}' not found".format(self.name)
 
 
-class States:
+class History:
 
-    """This class is in charge of saving & loading historic states of Noteboard.
-    * Called in `Storage` class.
-    """
+    def __init__(self, shelf):
+        self.shelf = shelf
+        self.buffer = None
 
-    def __init__(self):
-        self.stacks = []
-
-    def load(self, rm=True):
-        """
-        Load the very last state (info & data) and pop it from the stack.
-
-        Arguments:
-            rm {bool} -- pop the last state if True, otherwise get data of the state only
-        """
+    @staticmethod
+    def load():
+        """Load the history file."""
         try:
-            with gzip.open(STATES_PATH, "rb") as pkl:
-                self.stacks = pickle.load(pkl)
+            with gzip.GzipFile(HISTORY_PATH, "r") as j:
+                history = json.loads(j.read().decode("utf-8"))
         except FileNotFoundError:
-            raise NoteboardException("States file not found for loading")
+            raise NoteboardException("History file not found for loading")
+        return history
 
-        if len(self.stacks) == 0:
-            return False    # No more undos
-
-        if rm is True:
-            state = self.stacks.pop()    # => [undo] get the last state and remove it
-            logger.debug("Load state: {}".format(state))
-            # Update the pickle file
-            with gzip.open(STATES_PATH, "wb") as pkl:
-                pickle.dump(self.stacks, pkl)
-        else:
-            state = self.stacks[-1]
+    def revert(self):
+        history = History.load()
+        state = history.pop()    # => [undo] get the last state and remove it
+        logger.debug("Revert state: {}".format(state))
+        # Update the history file
+        with gzip.open(HISTORY_PATH, "w") as j:
+            j.write(json.dumps(history).encode("utf-8"))
         return state
-    
-    def save(self, info, action, data):
-        """
-        Save state data to pickle file.
 
-        Arguments:
-            info {str} -- basic information of this state
-            action {str} -- the last action
-            state {dict} -- data of the current state to be saved
-        """
-        is_new = not os.path.isfile(STATES_PATH)
+    def save(self):
+        self.buffer = dict(self.shelf._shelf)
+
+    def write(self, action, info):
+        is_new = not os.path.isfile(HISTORY_PATH)
 
         # Create and initialise pickle file with an empty list
         if is_new:
-            with gzip.open(STATES_PATH, "wb+") as pkl:
-                pickle.dump([], pkl)
+            with gzip.GzipFile(HISTORY_PATH, "w+") as j:
+                j.write(json.dumps([]).encode("utf-8"))
 
-        # Dump state data
+        # Write data to disk
         # => read the current saved states
-        with gzip.open(STATES_PATH, "rb") as pkl:
-            self.stacks = pickle.load(pkl)
-        # => dump state data
-        state = {"info": info, "action": action, "data": data}
-        logger.debug("Dump state: {}".format(state))
-        self.stacks.append(state)
-        with gzip.open(STATES_PATH, "wb") as pkl:
-            pickle.dump(self.stacks, pkl)
+        history = History.load()
+        # => dump history data
+        state = {"action": action, "info": info, "date": get_time("%d %b %Y %X")[0], "data": self.buffer}
+        logger.debug("Write history: {}".format(state))
+        history.append(state)
+        with gzip.open(HISTORY_PATH, "w") as j:
+            j.write(json.dumps(history).encode("utf-8"))
 
 
 class Storage:
@@ -105,7 +88,7 @@ class Storage:
 
     def __init__(self):
         self._shelf = None
-        self._States = States()
+        self.history = History(self)
 
     def __enter__(self):
         self.open()
@@ -243,8 +226,6 @@ class Storage:
             current_id = ids[-1] + 1
         # board name
         board = board or DEFAULT_BOARD
-        # save state before doing modification
-        self._save_state("Add item {} to {}".format(current_id, board), "add")
         # add
         if board not in self.shelf:
             # create board
@@ -265,8 +246,6 @@ class Storage:
         for board in self.shelf:
             for item in self.shelf[board]:
                 if item["id"] == id:
-                    # save
-                    self._save_state("Remove item {} on {}".format(id, board), "remove")
                     # remove
                     self.shelf[board].remove(item)
                     removed = item
@@ -289,8 +268,6 @@ class Storage:
         """
         if not board:
             amt = len(self.items)
-            # save
-            self._save_state("Clear {} items on all boards".format(amt), "clear")
             # remove all items of all boards
             self.shelf.clear()
             logger.debug("Cleared all {} Items".format(amt))
@@ -299,8 +276,6 @@ class Storage:
             if board not in self.shelf:
                 raise BoardNotFoundError(board)
             amt = len(self.shelf[board])
-            # save
-            self._save_state("Clear {} items on {}".format(amt, board), "clear")
             del self.shelf[board]
             logger.debug("Cleared {} Items on Board: '{}'".format(amt, board))
         return amt
@@ -324,8 +299,6 @@ class Storage:
                 if item["id"] == id:
                     old = item.copy()
                     if key == "text":
-                        # Save if modifying text
-                        self._save_state("Edit text of item {}".format(id), "edit")
                         # update modify time
                         # ? remove this feature
                         date, time = get_time()
@@ -408,8 +381,6 @@ class Storage:
         else:
             if self._validate_json(data) is False:
                 raise NoteboardException("Invalid JSON structure for noteboard")
-            # Save
-            self._save_state("Import boards from {}".format(path), "import")
             # Overwrite the current shelf and update it
             self.shelf.clear()
             self.shelf.update(dict(data))
@@ -431,53 +402,3 @@ class Storage:
         with open(dest, "w") as f:
             json.dump(data, f, indent=4, sort_keys=True)
         return dest
-    
-    def _save_state(self, info, action):
-        data = dict(self.shelf)
-        return self._States.save(info, action, data)
-    
-    def load_state(self):
-        state = self._States.load()
-        if state is False:
-            return state
-        self.shelf.clear()
-        self.shelf.update(state["data"])
-
-
-class History:
-
-    @staticmethod
-    def load():
-        """Load the history file."""
-        try:
-            with gzip.GzipFile(HISTORY_PATH, "r") as j:
-                history = json.loads(j.read().decode("utf-8"))
-        except FileNotFoundError:
-            raise NoteboardException("History file not found for loading")
-        return history
-
-    @staticmethod
-    def write(action, info):
-        """
-        Write action data to history file.
-
-        Arguments:
-            action {str} -- action name
-            info {str} -- information of this action
-        """
-        is_new = not os.path.isfile(HISTORY_PATH)
-
-        # Create and initialise pickle file with an empty list
-        if is_new:
-            with gzip.GzipFile(HISTORY_PATH, "w+") as j:
-                j.write(json.dumps([]).encode("utf-8"))
-
-        # Write action data
-        # => read the current saved states
-        history = History.load()
-        # => dump state data
-        data = {"action": action, "info": info, "date": get_time("%d %b %Y %X")[0]}
-        logger.debug("Write history: {}".format(data))
-        history.append(data)
-        with gzip.GzipFile(HISTORY_PATH, "w") as j:
-            j.write(json.dumps(history).encode("utf-8"))

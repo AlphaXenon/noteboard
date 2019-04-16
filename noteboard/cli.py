@@ -119,12 +119,10 @@ def add(args):
             if not item:
                 error_print("Text must not be empty")
                 return
+            s.history.save()
             i = s.add_item(board, item)
             p(color + "[+] Added item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + (board or DEFAULT_BOARD))
-            History.write(
-                "add",
-                "added item {} [{}] to board [{}]".format(str(i["id"]), item, (board or DEFAULT_BOARD)),
-            )
+            s.history.write("add", "added item {} [{}] to board [{}]".format(str(i["id"]), item, (board or DEFAULT_BOARD)))
     print_total()
     print()
 
@@ -135,12 +133,10 @@ def remove(args):
     with Storage() as s:
         print()
         for item in items:
+            s.history.save()
             i, board = s.remove_item(item)
             p(color + "[-] Removed item", Style.BRIGHT + str(i["id"]), color + "on", Style.BRIGHT + board)
-            History.write(
-                "remove",
-                "removed item {} [{}] from board [{}]".format(str(i["id"]), item, (board or DEFAULT_BOARD)),
-            )
+            s.history.write("remove", "removed item {} [{}] from board [{}]".format(str(i["id"]), item, (board or DEFAULT_BOARD)))
     print_total()
     print()
 
@@ -152,19 +148,15 @@ def clear(args):
         print()
         if boards:
             for board in boards:
+                s.history.save()
                 amt = s.clear_board(board)
                 p(color + "[x] Cleared", Style.DIM + str(amt) + Style.RESET_ALL, color + "items on", Style.BRIGHT + board)
-                History.write(
-                    "clear",
-                    "cleared {} items on board [{}]".format(str(amt), board),
-                )
+                s.history.write("clear", "cleared {} items on board [{}]".format(str(amt), board))
         else:
+            s.history.save()
             amt = s.clear_board(None)
             p(color + "[x] Cleared", Style.DIM + str(amt) + Style.RESET_ALL, color + "items on all boards")
-            History.write(
-                "clear",
-                "cleared {} items on all board".format(str(amt)),
-            )
+            s.history.write("clear", "cleared {} items on all board".format(str(amt)))
     print_total()
     print()
 
@@ -176,19 +168,14 @@ def tick(args):
         print()
         for item in items:
             state = not s.get_item(item)["tick"]
+            s.history.save()
             i = s.modify_item(item, "tick", state)
             if state is True:
                 p(color + "[✓] Ticked item", Style.BRIGHT + str(i["id"]), color)
-                History.write(
-                    "tick",
-                    "ticked item {} [{}]".format(str(i["id"]), i["text"]),
-                )
+                s.history.write("tick", "ticked item {} [{}]".format(str(i["id"]), i["text"]))
             else:
                 p(color + "[✓] Unticked item", Style.BRIGHT + str(i["id"]), color)
-                History.write(
-                    "untick",
-                    "unticked item {} [{}]".format(str(i["id"]), i["text"]),
-                )
+                s.history.write("untick", "unticked item {} [{}]".format(str(i["id"]), i["text"]))
     print()
 
 
@@ -199,19 +186,14 @@ def mark(args):
         print()
         for item in items:
             state = not s.get_item(item)["mark"]
+            s.history.save()
             i = s.modify_item(item, "mark", state)
             if state is True:
                 p(color + "[!] Marked item", Style.BRIGHT + str(i["id"]))
-                History.write(
-                    "mark",
-                    "marked item {} [{}]".format(str(i["id"]), i["text"]),
-                )
+                s.history.write("mark", "marked item {} [{}]".format(str(i["id"]), i["text"]))
             else:
                 p(color + "[!] Unmarked item", Style.BRIGHT + str(i["id"]))
-                History.write(
-                    "unmark",
-                    "unmarked item {} [{}]".format(str(i["id"]), i["text"]),
-                )
+                s.history.write("unmark", "unmarked item {} [{}]".format(str(i["id"]), i["text"]))
     print()
 
 
@@ -222,19 +204,14 @@ def star(args):
         print()
         for item in items:
             state = not s.get_item(item)["star"]
+            s.history.save()
             i = s.modify_item(item, "star", state)
             if state is True:
                 p(color + "[*] Starred item", Style.BRIGHT + str(i["id"]))
-                History.write(
-                    "star",
-                    "starred item {} [{}]".format(str(i["id"]), i["text"]),
-                )
+                s.history.write("star", "starred item {} [{}]".format(str(i["id"]), i["text"]))
             else:
                 p(color + "[*] Unstarred item", Style.BRIGHT + str(i["id"]))
-                History.write(
-                    "unstar",
-                    "unstarred item {} [{}]".format(str(i["id"]), i["text"]),
-                )
+                s.history.write("unstar", "unstarred item {} [{}]".format(str(i["id"]), i["text"]))
     print()
 
 
@@ -246,11 +223,9 @@ def edit(args):
         error_print("Text must not be empty")
         return
     with Storage() as s:
+        s.history.save()
         i = s.modify_item(item, "text", text)
-        History.write(
-            "edit",
-            "editted item {} from [{}] to [{}]".format(str(i["id"]), i["text"], text),
-        )
+        s.history.write("edit", "editted item {} from [{}] to [{}]".format(str(i["id"]), i["text"], text))
     print()
     p(color + "[~] Edited text of item", Style.BRIGHT + str(i["id"]), color + "from", i["text"], color + "to", text)
     print()
@@ -272,19 +247,14 @@ def tag(args):
     with Storage() as s:
         print()
         for item in items:
+            s.history.save()
             i = s.modify_item(item, "tag", tag_text)
             if text != "":
                 p(color + "[#] Tagged item", Style.BRIGHT + str(i["id"]), color + "with", tag_color + tag_text)
-                History.write(
-                    "tag",
-                    "tagged item {} [{}] with tag text [{}]".format(str(i["id"]), i["text"], text),
-                )
+                s.history.write("tag", "tagged item {} [{}] with tag text [{}]".format(str(i["id"]), i["text"], text))
             else:
                 p(color + "[#] Untagged item", Style.BRIGHT + str(i["id"]))
-                History.write(
-                    "tag",
-                    "untagged item {} [{}]".format(str(i["id"]), i["text"]),
-                )
+                s.history.write("tag", "untagged item {} [{}]".format(str(i["id"]), i["text"]))
     print()
 
 
@@ -311,19 +281,14 @@ def due(args):
     with Storage() as s:
         print()
         for item in items:
+            s.history.save()
             i = s.modify_item(item, "due", ts)
             if ts:
                 p(color + "[:] Assigned due date", duedate, color + "to", Style.BRIGHT + str(item))
-                History.write(
-                    "due",
-                    "assiged due date [{}] to item {} [{}]".format(duedate, str(i["id"]), i["text"]),
-                )
+                s.history.write("due", "assiged due date [{}] to item {} [{}]".format(duedate, str(i["id"]), i["text"]))
             else:
                 p(color + "[:] Unassigned due date of item", Style.BRIGHT + str(item))
-                History.write(
-                    "due",
-                    "unassiged due date of item {} [{}]".format(str(i["id"]), i["text"]),
-                )
+                s.history.write("due", "unassiged due date of item {} [{}]".format(str(i["id"]), i["text"]))
     print()
 
 
@@ -334,12 +299,10 @@ def move(args):
     with Storage() as s:
         print()
         for item in items:
+            s.history.save()
             i, b = s.move_item(item, board)
             p(color + "[&] Moved item", Style.BRIGHT + str(i["id"]), color + "to", Style.BRIGHT + board)
-            History.write(
-                "move",
-                "moved item {} [{}] from board [{}] to [{}]".format(str(i["id"]), i["text"], b, board),
-            )
+            s.history.write("move", "moved item {} [{}] from board [{}] to [{}]".format(str(i["id"]), i["text"], b, board))
     print()
 
 
@@ -353,9 +316,10 @@ def rename(args):
     with Storage() as s:
         print()
         s.get_board(board)  # try to get -> to test existence of the board
+        s.history.save()
         s.shelf[new] = s.shelf.pop(board)
         p(color + "[~] Renamed", Style.BRIGHT + board, color + "to", Style.BRIGHT + new)
-        History.write(
+        s.history.write(
             "rename",
             "renamed board [{}] to [{}]".format(board, new),
         )
@@ -365,10 +329,11 @@ def rename(args):
 def undo(_):
     color = get_fore_color("undo")
     with Storage() as s:
-        state = s._States.load(rm=False)
-        if state is False:
+        hist = s.history.load()
+        if len(hist) == 0:
             error_print("Already at oldest change")
             return
+        state = hist[-1]
         print()
         p(color + Style.BRIGHT + "Last Action:")
         p("=>", get_fore_color(state["action"]) + state["info"])
@@ -377,11 +342,7 @@ def undo(_):
         if ask != "y":
             error_print("Operation aborted")
             return
-        s.load_state()
-        History.write(
-            "undo",
-            "undid [{}] ({})".format(state["action"], state["info"]),
-        )
+        s.history.revert()
         print(color + "[^] Undone", "=>", get_fore_color(state["action"]) + state["info"])
 
 
@@ -389,11 +350,9 @@ def import_(args):
     color = get_fore_color("import")
     path = args.path
     with Storage() as s:
+        s.history.save()
         full_path = s.import_(path)
-        History.write(
-            "import",
-            "imported boards from [{}]".format(full_path),
-        )
+        s.history.write("import", "imported boards from [{}]".format(full_path))
     print()
     p(color + "[I] Imported boards from", Style.BRIGHT + full_path)
     print_total()
@@ -412,10 +371,7 @@ def export(args):
             return
     with Storage() as s:
         full_path = s.export(path)
-        History.write(
-            "export",
-            "exported boards to [{}]".format(full_path),
-        )
+        s.history.write("export", "exported boards to [{}]".format(full_path))
     print()
     p(color + "[E] Exported boards to", Style.BRIGHT + full_path)
     print()

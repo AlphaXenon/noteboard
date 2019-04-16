@@ -19,7 +19,6 @@ if not os.path.isdir(path):
     os.mkdir(path)
 
 LOG_PATH = os.path.join(path, "noteboard.log")
-STATES_PATH = os.path.join(path, "states.pkl.gz")
 HISTORY_PATH = os.path.join(path, "history.json.gz")
 STORAGE_PATH = os.path.join(path, "storage")
 STORAGE_GZ_PATH = os.path.join(path, "storage.gz")
