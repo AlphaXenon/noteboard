@@ -300,20 +300,11 @@ class Storage:
         Returns:
             dict -- the item before modification
         """
-        for board in self.shelf:
-            for item in self.shelf[board]:
-                if item["id"] == id:
-                    old = item.copy()
-                    if key == "text":
-                        # update modify time
-                        # ? remove this feature
-                        date, time = get_time()
-                        item["time"] = time
-                        item["date"] = date
-                    item[key] = value
-                    logger.debug("Modified Item from {} to {}".format(json.dumps(old), json.dumps(item)))
-                    return old
-        raise ItemNotFoundError(id)
+        item = self.get_item(id)
+        old = item.copy()
+        item[key] = value
+        logger.debug("Modified Item from {} to {}".format(json.dumps(old), json.dumps(item)))
+        return old
 
     def move_item(self, id, board):
         """[Action]
@@ -414,8 +405,11 @@ class Storage:
         for board in self.shelf:
             data[board] = []
             for item in self.shelf[board]:
-                data[board].append(item)
+                data[board].append(item.copy())
+        print(self.history.buffer)
         self.history.save(data)
+        print(self.history.buffer)
 
     def write_history(self, action, info):
+        print(self.history.buffer)
         self.history.write(action, info)

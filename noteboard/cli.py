@@ -544,7 +544,7 @@ Examples:
 
     move_parser = subparsers.add_parser("move", help=get_fore_color("move") + "[&] Move an item to another board" + Fore.RESET)
     move_parser.add_argument("item", help="id of the item you want to move", type=int, metavar="<item id>", nargs="+")
-    move_parser.add_argument("board", help="name of the destination board", type=str, metavar="<name>")
+    move_parser.add_argument("-b", "--board", help="name of the destination board", type=str, metavar="<name>", required=True)
     move_parser.set_defaults(func=move)
 
     rename_parser = subparsers.add_parser("rename", help=get_fore_color("rename") + "[~] Rename the name of the board" + Fore.RESET)
