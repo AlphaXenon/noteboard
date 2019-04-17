@@ -406,10 +406,7 @@ class Storage:
             data[board] = []
             for item in self.shelf[board]:
                 data[board].append(item.copy())
-        print(self.history.buffer)
         self.history.save(data)
-        print(self.history.buffer)
 
     def write_history(self, action, info):
-        print(self.history.buffer)
         self.history.write(action, info)
