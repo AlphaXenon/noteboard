@@ -37,15 +37,14 @@ class BoardNotFoundError(NoteboardException):
 
 class History:
 
-    def __init__(self, shelf):
-        self.shelf = shelf
+    def __init__(self, storage):
+        self.storage = storage
         self.buffer = None
 
     @staticmethod
     def load():
-        """Load the history file."""
         try:
-            with gzip.GzipFile(HISTORY_PATH, "r") as j:
+            with gzip.open(HISTORY_PATH, "r") as j:
                 history = json.loads(j.read().decode("utf-8"))
         except FileNotFoundError:
             raise NoteboardException("History file not found for loading")
@@ -53,38 +52,45 @@ class History:
 
     def revert(self):
         history = History.load()
-        state = history.pop()    # => [undo] get the last state and remove it
+        hist = [i for i in history if i["data"] is not None]
+        if len(hist) == 0:
+            return {}
+        state = hist[-1]
         logger.debug("Revert state: {}".format(state))
+        # Update the shelf
+        self.storage.shelf.clear()
+        self.storage.shelf.update(dict(state["data"]))
+        # Remove state from history
+        history.remove(state)
         # Update the history file
         with gzip.open(HISTORY_PATH, "w") as j:
             j.write(json.dumps(history).encode("utf-8"))
         return state
 
-    def save(self):
-        self.buffer = dict(self.shelf._shelf)
+    def save(self, data):
+        self.buffer = data.copy()
 
     def write(self, action, info):
         is_new = not os.path.isfile(HISTORY_PATH)
 
-        # Create and initialise pickle file with an empty list
+        # Create and initialise history file with an empty list
         if is_new:
-            with gzip.GzipFile(HISTORY_PATH, "w+") as j:
+            with gzip.open(HISTORY_PATH, "w+") as j:
                 j.write(json.dumps([]).encode("utf-8"))
 
         # Write data to disk
         # => read the current saved states
         history = History.load()
         # => dump history data
-        state = {"action": action, "info": info, "date": get_time("%d %b %Y %X")[0], "data": self.buffer}
+        state = {"action": action, "info": info, "date": get_time("%d %b %Y %X")[0], "data": dict(self.buffer) if self.buffer else self.buffer}
         logger.debug("Write history: {}".format(state))
         history.append(state)
         with gzip.open(HISTORY_PATH, "w") as j:
             j.write(json.dumps(history).encode("utf-8"))
+        self.buffer = None  # empty the buffer
 
 
 class Storage:
-
-    """This class handles the main back-end job of Noteboard, including I/O of shelf and operations."""
 
     def __init__(self):
         self._shelf = None
@@ -402,3 +408,14 @@ class Storage:
         with open(dest, "w") as f:
             json.dump(data, f, indent=4, sort_keys=True)
         return dest
+
+    def save_history(self):
+        data = {}
+        for board in self.shelf:
+            data[board] = []
+            for item in self.shelf[board]:
+                data[board].append(item)
+        self.history.save(data)
+
+    def write_history(self, action, info):
+        self.history.write(action, info)
