@@ -59,7 +59,7 @@
 ## Behind the Board
 
 The main storage is powered by `shelve`, a Python standard library, which provides a lightweight & persistent file-based database system.
-Whereas the "buffer" (the one which allows you to undo previous actions), is backed by a `pickle` object.
+Whereas the "history" system (the one which allows you to undo previous actions), is backed by a `json` file.
 
 Notably, the storage and the buffer are compressed to `gzip` when it is not being accessed.
 This greatly reduces the sizes of the files by more than 50%. 
@@ -105,6 +105,7 @@ Actions:
     undo                [^] Undo the last action
     import              [I] Import and load boards from JSON file
     export              [E] Export boards as a JSON file
+    history             [.] Prints out the historical changes
 
 Options:
     -h, --help          show this help message and exit
@@ -194,7 +195,9 @@ If no `date` is given, existing due date of this item will be removed.
 
 ### Move item
 
-`$ board move <item id> [<item id> ...] <name>`
+`$ board move <item id> [<item id> ...]`
+
+* `-b/--board <name>` : move the item to this board
 
 If board does not exist, one will be created.
 
@@ -220,13 +223,12 @@ This will spawn a subprocess to execute the command.
 
 `$ board undo`
 
-#### Actions that can be undone:
+#### Actions that cannot be undone:
 
-* add
-* remove
-* clear
-* edit
-* import
+* run
+* undo
+* export
+* history
 
 ---
 
