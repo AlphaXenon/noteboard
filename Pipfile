@@ -7,7 +7,6 @@ verify_ssl = true
 
 [packages]
 colorama = "*"
-prompt-toolkit = "*"
 
 [requires]
 python_version = "3.7"
