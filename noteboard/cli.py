@@ -478,7 +478,7 @@ Examples:
   $ board edit 1 "improve cli"
   $ board tag 1 6 -t "enhancement" -c GREEN
   $ board tick 1 5 9
-  $ board move 2 3 "Destination"
+  $ board move 2 3 -b "Destination"
   $ board import ~/Documents/board.json
   $ board export ~/Documents/save.json
 
