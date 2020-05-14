@@ -7,8 +7,7 @@
 <p align="center">
   <a href="https://pypi.python.org/pypi/noteboard"><img src="https://img.shields.io/pypi/v/noteboard.svg"></a>
   <a href="https://pypi.python.org/pypi/noteboard"><img src="https://img.shields.io/pypi/dm/noteboard.svg"></a>
-  <a href="./LICENSE.txt"><img src="https://img.shields.io/github/license/a1phat0ny/noteboard.svg"></a>
-  <a href="https://paypal.me/tonychan2342"><img alt="donate" src="https://img.shields.io/badge/PayPal-donate!-blue?logo=PayPal"></a>
+  <a href="./LICENSE.txt"><img src="https://img.shields.io/github/license/tnychn/noteboard.svg"></a>
 </p>
 
 
@@ -73,7 +72,7 @@ Make sure you have Python 3.6 (or higher) installed in your machine.
 ### Source
 
 ```shell
-$ git clone https://github.com/a1phat0ny/noteboard.git
+$ git clone https://github.com/tnychn/noteboard.git
 $ cd noteboard
 $ python3 setup.py install
 ```
@@ -311,5 +310,8 @@ Feel free to open issues for bug reports and feature requests ! If you are repor
 
 This project is inspired by [@Klaus Sinani](https://github.com/klaussinani)'s [taskbook](https://github.com/klaussinani/taskbook).
 
-<br>
-<p align="center">Made with ❤️︎ by <a href="https://github.com/a1phat0ny">a1phat0ny</a><br>under <a href="./LICENSE.txt">MIT license</a></p>
+<div align="center">
+    <sub><strong>Made with ♥︎ by tnychn</strong></sub>
+    <br>
+    <sub><strong>MIT © 2020 Tony Chan</strong></sub>
+</div>
