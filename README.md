@@ -313,5 +313,5 @@ This project is inspired by [@Klaus Sinani](https://github.com/klaussinani)'s [t
 <div align="center">
     <sub><strong>Made with ♥︎ by tnychn</strong></sub>
     <br>
-    <sub><strong>MIT © 2020 Tony Chan</strong></sub>
+    <sub><strong>MIT © 2019 Tony Chan</strong></sub>
 </div>
